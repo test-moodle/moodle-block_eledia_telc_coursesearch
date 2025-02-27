@@ -27,49 +27,49 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Constants for the user preferences grouping options
  */
-define('BLOCK_ETCOURESEARCH_GROUPING_ALLINCLUDINGHIDDEN', 'allincludinghidden');
-define('BLOCK_ETCOURESEARCH_GROUPING_ALL', 'all');
-define('BLOCK_ETCOURESEARCH_GROUPING_INPROGRESS', 'inprogress');
-define('BLOCK_ETCOURESEARCH_GROUPING_FUTURE', 'future');
-define('BLOCK_ETCOURESEARCH_GROUPING_PAST', 'past');
-define('BLOCK_ETCOURESEARCH_GROUPING_FAVOURITES', 'favourites');
-define('BLOCK_ETCOURESEARCH_GROUPING_HIDDEN', 'hidden');
-define('BLOCK_ETCOURESEARCH_GROUPING_CUSTOMFIELD', 'customfield');
+define('BLOCK_ETCOURSESEARCH_GROUPING_ALLINCLUDINGHIDDEN', 'allincludinghidden');
+define('BLOCK_ETCOURSESEARCH_GROUPING_ALL', 'all');
+define('BLOCK_ETCOURSESEARCH_GROUPING_INPROGRESS', 'inprogress');
+define('BLOCK_ETCOURSESEARCH_GROUPING_FUTURE', 'future');
+define('BLOCK_ETCOURSESEARCH_GROUPING_PAST', 'past');
+define('BLOCK_ETCOURSESEARCH_GROUPING_FAVOURITES', 'favourites');
+define('BLOCK_ETCOURSESEARCH_GROUPING_HIDDEN', 'hidden');
+define('BLOCK_ETCOURSESEARCH_GROUPING_CUSTOMFIELD', 'customfield');
 
 /**
  * Allows selection of all courses without a value for the custom field.
  */
-define('BLOCK_ETCOURESEARCH_CUSTOMFIELD_EMPTY', -1);
+define('BLOCK_ETCOURSESEARCH_CUSTOMFIELD_EMPTY', -1);
 
 /**
  * Constants for the user preferences sorting options
  * timeline
  */
-define('BLOCK_ETCOURESEARCH_SORTING_TITLE', 'title');
-define('BLOCK_ETCOURESEARCH_SORTING_LASTACCESSED', 'lastaccessed');
-define('BLOCK_ETCOURESEARCH_SORTING_SHORTNAME', 'shortname');
+define('BLOCK_ETCOURSESEARCH_SORTING_TITLE', 'title');
+define('BLOCK_ETCOURSESEARCH_SORTING_LASTACCESSED', 'lastaccessed');
+define('BLOCK_ETCOURSESEARCH_SORTING_SHORTNAME', 'shortname');
 
 /**
  * Constants for the user preferences view options
  */
-define('BLOCK_ETCOURESEARCH_VIEW_CARD', 'card');
-define('BLOCK_ETCOURESEARCH_VIEW_LIST', 'list');
-define('BLOCK_ETCOURESEARCH_VIEW_SUMMARY', 'summary');
+define('BLOCK_ETCOURSESEARCH_VIEW_CARD', 'card');
+define('BLOCK_ETCOURSESEARCH_VIEW_LIST', 'list');
+define('BLOCK_ETCOURSESEARCH_VIEW_SUMMARY', 'summary');
 
 /**
  * Constants for the user paging preferences
  */
-define('BLOCK_ETCOURESEARCH_PAGING_12', 12);
-define('BLOCK_ETCOURESEARCH_PAGING_24', 24);
-define('BLOCK_ETCOURESEARCH_PAGING_48', 48);
-define('BLOCK_ETCOURESEARCH_PAGING_96', 96);
-define('BLOCK_ETCOURESEARCH_PAGING_ALL', 0);
+define('BLOCK_ETCOURSESEARCH_PAGING_12', 12);
+define('BLOCK_ETCOURSESEARCH_PAGING_24', 24);
+define('BLOCK_ETCOURSESEARCH_PAGING_48', 48);
+define('BLOCK_ETCOURSESEARCH_PAGING_96', 96);
+define('BLOCK_ETCOURSESEARCH_PAGING_ALL', 0);
 
 /**
  * Constants for the admin category display setting
  */
-define('BLOCK_ETCOURESEARCH_DISPLAY_CATEGORIES_ON', 'on');
-define('BLOCK_ETCOURESEARCH_DISPLAY_CATEGORIES_OFF', 'off');
+define('BLOCK_ETCOURSESEARCH_DISPLAY_CATEGORIES_ON', 'on');
+define('BLOCK_ETCOURSESEARCH_DISPLAY_CATEGORIES_OFF', 'off');
 
 /**
  * Get the current user preferences that are available
@@ -81,17 +81,17 @@ define('BLOCK_ETCOURESEARCH_DISPLAY_CATEGORIES_OFF', 'off');
 function block_eledia_telc_coursesearch_user_preferences(): array {
     $preferences['block_eledia_telc_coursesearch_user_grouping_preference'] = array(
         'null' => NULL_NOT_ALLOWED,
-        'default' => BLOCK_ETCOURESEARCH_GROUPING_ALL,
+        'default' => BLOCK_ETCOURSESEARCH_GROUPING_ALL,
         'type' => PARAM_ALPHA,
         'choices' => array(
-            BLOCK_ETCOURESEARCH_GROUPING_ALLINCLUDINGHIDDEN,
-            BLOCK_ETCOURESEARCH_GROUPING_ALL,
-            BLOCK_ETCOURESEARCH_GROUPING_INPROGRESS,
-            BLOCK_ETCOURESEARCH_GROUPING_FUTURE,
-            BLOCK_ETCOURESEARCH_GROUPING_PAST,
-            BLOCK_ETCOURESEARCH_GROUPING_FAVOURITES,
-            BLOCK_ETCOURESEARCH_GROUPING_HIDDEN,
-            BLOCK_ETCOURESEARCH_GROUPING_CUSTOMFIELD,
+            BLOCK_ETCOURSESEARCH_GROUPING_ALLINCLUDINGHIDDEN,
+            BLOCK_ETCOURSESEARCH_GROUPING_ALL,
+            BLOCK_ETCOURSESEARCH_GROUPING_INPROGRESS,
+            BLOCK_ETCOURSESEARCH_GROUPING_FUTURE,
+            BLOCK_ETCOURSESEARCH_GROUPING_PAST,
+            BLOCK_ETCOURSESEARCH_GROUPING_FAVOURITES,
+            BLOCK_ETCOURSESEARCH_GROUPING_HIDDEN,
+            BLOCK_ETCOURSESEARCH_GROUPING_CUSTOMFIELD,
         ),
         'permissioncallback' => [core_user::class, 'is_current_user'],
     );
@@ -105,24 +105,24 @@ function block_eledia_telc_coursesearch_user_preferences(): array {
 
     $preferences['block_eledia_telc_coursesearch_user_sort_preference'] = array(
         'null' => NULL_NOT_ALLOWED,
-        'default' => BLOCK_ETCOURESEARCH_SORTING_LASTACCESSED,
+        'default' => BLOCK_ETCOURSESEARCH_SORTING_LASTACCESSED,
         'type' => PARAM_ALPHA,
         'choices' => array(
-            BLOCK_ETCOURESEARCH_SORTING_TITLE,
-            BLOCK_ETCOURESEARCH_SORTING_LASTACCESSED,
-            BLOCK_ETCOURESEARCH_SORTING_SHORTNAME
+            BLOCK_ETCOURSESEARCH_SORTING_TITLE,
+            BLOCK_ETCOURSESEARCH_SORTING_LASTACCESSED,
+            BLOCK_ETCOURSESEARCH_SORTING_SHORTNAME
         ),
         'permissioncallback' => [core_user::class, 'is_current_user'],
     );
 
     $preferences['block_eledia_telc_coursesearch_user_view_preference'] = array(
         'null' => NULL_NOT_ALLOWED,
-        'default' => BLOCK_ETCOURESEARCH_VIEW_CARD,
+        'default' => BLOCK_ETCOURSESEARCH_VIEW_CARD,
         'type' => PARAM_ALPHA,
         'choices' => array(
-            BLOCK_ETCOURESEARCH_VIEW_CARD,
-            BLOCK_ETCOURESEARCH_VIEW_LIST,
-            BLOCK_ETCOURESEARCH_VIEW_SUMMARY
+            BLOCK_ETCOURSESEARCH_VIEW_CARD,
+            BLOCK_ETCOURSESEARCH_VIEW_LIST,
+            BLOCK_ETCOURSESEARCH_VIEW_SUMMARY
         ),
         'permissioncallback' => [core_user::class, 'is_current_user'],
     );
@@ -138,14 +138,14 @@ function block_eledia_telc_coursesearch_user_preferences(): array {
 
     $preferences['block_eledia_telc_coursesearch_user_paging_preference'] = array(
         'null' => NULL_NOT_ALLOWED,
-        'default' => BLOCK_ETCOURESEARCH_PAGING_12,
+        'default' => BLOCK_ETCOURSESEARCH_PAGING_12,
         'type' => PARAM_INT,
         'choices' => array(
-            BLOCK_ETCOURESEARCH_PAGING_12,
-            BLOCK_ETCOURESEARCH_PAGING_24,
-            BLOCK_ETCOURESEARCH_PAGING_48,
-            BLOCK_ETCOURESEARCH_PAGING_96,
-            BLOCK_ETCOURESEARCH_PAGING_ALL
+            BLOCK_ETCOURSESEARCH_PAGING_12,
+            BLOCK_ETCOURSESEARCH_PAGING_24,
+            BLOCK_ETCOURSESEARCH_PAGING_48,
+            BLOCK_ETCOURSESEARCH_PAGING_96,
+            BLOCK_ETCOURSESEARCH_PAGING_ALL
         ),
         'permissioncallback' => [core_user::class, 'is_current_user'],
     );
