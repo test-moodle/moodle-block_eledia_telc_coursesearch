@@ -73,6 +73,7 @@ $string['privacy:metadata:overviewgroupingpreference'] = 'The Course overview bl
 $string['privacy:metadata:overviewpagingpreference'] = 'The Course overview block paging preference.';
 $string['removefromfavourites'] = 'Unstar this course';
 $string['searchcourses'] = "Search courses";
+$string['searchcategories'] = "Search categories";
 $string['shortname'] = 'Short name';
 $string['summary'] = 'Summary';
 $string['title'] = 'Course name';

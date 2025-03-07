@@ -60,10 +60,13 @@ const registerSelector = root => {
     const Selector = root.find(SELECTORS.FILTERS);
 
     CustomEvents.define(Selector, [CustomEvents.events.activate]);
+    // TODO: Repurpose this selector for custom fields.
+    // TODO: Repurpose this selector for category select.
     Selector.on(
         CustomEvents.events.activate,
         SELECTORS.FILTER_OPTION,
         (e, data) => {
+            // NOTE: It might be possible to repurpose this without much change for custom fields.
             const option = $(e.target);
 
             if (option.hasClass('active')) {
@@ -86,8 +89,12 @@ const registerSelector = root => {
             // Reset the views.
 
             // Check if the user is currently in a searching state, if so we'll reset it.
+            // NOTE: This empties the search when something in the "All" dropdown is being selected.
             const page = document.querySelector(SELECTORS.region.selectBlock);
             const input = page.querySelector(SELECTORS.region.searchInput);
+            // TODO: Add code for check searching state for category search.
+            // NOTE: The category search needs an extra webservice function.
+            // NOTE: The category search doesn't need a blocking when searching because the select is the narrowing action.
             if (input.value !== '') {
                 const clearIcon = page.querySelector(SELECTORS.region.clearIcon);
                 input.value = '';

@@ -150,7 +150,29 @@ const getSearchMyCourses = (filters, limit, searchValue) => {
         summaryDisplayLoaded = false;
     }
     return Repository.getEnrolledCoursesByTimeline(params);
-};
+}
+
+/**
+ * Search for categories from backend.
+ *
+ * @param {string} filters The filters for this view.
+ * @param {string} searchValue What does the user want to search within the categoies names.
+ * @param {boolean} subCategories search for sub categories
+ * @return {promise} Resolved with an array of categories.
+ */
+const getSearchCategories = (key, searchValue, subCategories) => {
+    const params = {
+        // NOTE: It might be beneficial to allow multiple criteria of the core supported ones.
+        criteria: [
+            {
+                key: key,
+                searchValue: searchValue,
+            }
+        ],
+        addsubcategories: subCategories,
+    };
+    return Repository.getCategories(params);
+}
 
 /**
  * Get the container element for the favourite icon.
@@ -517,6 +539,7 @@ const renderCourses = (root, coursesData) => {
             return course;
         });
         if (coursesData.courses.length) {
+            // NOTE: Render function for mustache.
             return Templates.render(currentTemplate, {
                 courses: coursesData.courses,
             });
@@ -590,6 +613,7 @@ const itemsPerPageFunc = (pagingLimit, root) => {
  * @param {null|boolean} activeSearch Are we currently actively searching and building up search results?
  */
 const pageBuilder = (coursesData, currentPage, pageData, actions, activeSearch = null) => {
+    // TODO: Examine how mustache is populated.
     // If the courseData comes in an object then get the value otherwise it is a pure array.
     let courses = coursesData.courses ? coursesData.courses : coursesData;
     let nextPageStart = 0;
@@ -679,6 +703,29 @@ const searchFunctionalityCurry = () => {
             limit,
             inputValue
         ).then(coursesData => {
+            // NOTE: Here it goes.
+            pageBuilder(coursesData, currentPage, pageData, actions);
+            return renderCourses(root, loadedPages[currentPage]);
+        }).catch(Notification.exception);
+
+        promises.push(searchingPromise);
+    };
+};
+
+/**
+ * Initialize the categoy searching functionality so we can call it when required.
+ *
+ * @return {function(Object, Number, Object, Object, Object, Promise, Number, String): void}
+ */
+const catSearchFunctionalityCurry = () => {
+    resetGlobals();
+    return (filters, currentPage, pageData, actions, root, promises, limit, inputValue) => {
+        const searchingPromise = getSearchCategories(
+            filters,
+            limit,
+            inputValue
+        ).then(coursesData => {
+            // NOTE: Here it goes.
             pageBuilder(coursesData, currentPage, pageData, actions);
             return renderCourses(root, loadedPages[currentPage]);
         }).catch(Notification.exception);
@@ -795,6 +842,7 @@ const registerEventListeners = (root, page) => {
 
     // Searching functionality event handlers.
     const input = page.querySelector(SELECTORS.region.searchInput);
+    const catinput = page.querySelector(SELECTORS.region.catsearchInput);
     const clearIcon = page.querySelector(SELECTORS.region.clearIcon);
 
     clearIcon.addEventListener('click', () => {
@@ -809,6 +857,16 @@ const registerEventListeners = (root, page) => {
         } else {
             activeSearch(clearIcon);
             initializePagedContent(root, searchFunctionalityCurry(), input.value.trim());
+        }
+    }, 1000));
+
+    // Listener for category search.
+    catinput.addEventListener('input', debounce(() => {
+        if (catinput.value === '') {
+            clearSearch(clearIcon, root);
+        } else {
+            activeSearch(clearIcon);
+            initializePagedContent(root, /* TODO: Make own search for categories. */ searchFunctionalityCurry(), catinput.value.trim());
         }
     }, 1000));
 };
