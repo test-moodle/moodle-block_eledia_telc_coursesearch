@@ -917,11 +917,10 @@ const registerEventListeners = (root, page) => {
 
         // Searching functionality event handlers.
         const input = page.querySelector(SELECTORS.region.searchInput);
-        const catinput = page.querySelector(SELECTORS.region.catsearchInput);
-        //const catSearch = page.querySelector(SELECTORS.region.catsearchDropdown);
-        const catDropdown = page.querySelector(SELECTORS.region.catsearchDropdown);
         const clearIcon = page.querySelector(SELECTORS.region.clearIcon);
-        const clearCatIcon = page.querySelector(SELECTORS.region.clearCatIcon);
+        const catinput = page.querySelector(SELECTORS.cat.input);
+        const catDropdown = page.querySelector(SELECTORS.cat.dropdown);
+        const clearCatIcon = page.querySelector(SELECTORS.cat.clearIcon);
 
         clearIcon.addEventListener('click', () => {
                 input.value = '';
@@ -951,8 +950,8 @@ const registerEventListeners = (root, page) => {
                 } else {
                         activeSearch(clearCatIcon);
                         initializeCategorySearchContent(
-                                SELECTORS.region.catsearchDropdownDiv,
-                                SELECTORS.region.catsearchDropdown,
+                                SELECTORS.cat.dropdownDiv,
+                                SELECTORS.cat.dropdown,
                                 catSearchFunctionality(),
                                 page,
                                 catinput.value.trim());
@@ -1005,7 +1004,7 @@ const activeSearch = (clearIcon) => {
  */
 const preventCategorydropdownCollapse = (e) => {
         const page = document.querySelector(SELECTORS.region.selectBlock);
-        const catDropdown = page.querySelector(SELECTORS.region.catsearchDropdown);
+        const catDropdown = page.querySelector(SELECTORS.cat.dropdown);
         if (!e.target.classList.contains('catprevent')) {
                 catDropdown.style.display = 'none';
         }

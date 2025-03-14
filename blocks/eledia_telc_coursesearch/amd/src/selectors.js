@@ -37,13 +37,18 @@ export default {
     ICON_NOT_FAVOURITE: '[data-region="not-favourite"]',
     region: {
         selectBlock: '[data-region="eledia_telc_coursesearch"]',
-        clearIcon: '[data-action="clearsearch"]',
-        clearCatIcon: '[data-action="clearcatsearch"]',
         searchInput: '[data-action="search"]',
-        catsearchInput: '[data-action="catsearch"]',
-        catsearch: '.categorysearch',
-        // TODO: Change class selector.
-        catsearchDropdown: '.dropdown-categories',
-        catsearchDropdownDiv: '.category-droprown-container',
+        clearIcon: '[data-action="clearsearch"]',
+    },
+    cat: {
+        prevent: '.catprevent',
+        clearIcon: '[data-action="clearcatsearch"]',
+        input: '[data-action="catsearch"]',
+        search: '.categorysearch',
+        dropdown: '.dropdown-categories',
+        dropdownDiv: '.category-droprown-container',
+        selectableItem: 'category-selectable',
+        selectedItem: 'category-selected',
+        noItem: 'category-no',
     },
 };
