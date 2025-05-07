@@ -7,6 +7,7 @@ use core_external\external_single_structure;
 use core_external\external_multiple_structure;
 use core_external\external_value;
 use core_course_category;
+use core_course_external;
 use coursecat_helper;
 use moodle_url;
 use context_system;
@@ -20,7 +21,8 @@ use core_external\external_warnings;
 use core_external\util;
 
 require_once(__DIR__ . "/../../../course/lib.php");
-
+require_once($CFG->dirroot . '/course/externallib.php');
+require_once($CFG->dirroot . '/course/renderer.php');
 defined('MOODLE_INTERNAL') || die();
 
 class externallib extends external_api {
@@ -35,7 +37,7 @@ class externallib extends external_api {
         global $USER, $DB;
 
         // Ensure the user is logged in
-        $context = context_system::instance();
+        $context = \context_system::instance();
         self::validate_context($context);
 
         // Get the user's enrolled courses
@@ -357,12 +359,16 @@ class externallib extends external_api {
 					continue;
 			$cid = $customfield['id'];
 			[$insql, $params] = $DB->get_in_or_equal($customfield['values']);
+		\tool_eledia_scripts\util::debug_out( "params0:\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out($params . "\n", 'catdebg.txt');
 			$allparams = array_merge($allparams, $params);
 			$query = " AND ( cd.fieldid = $cid AND cd.value $insql ) ";
 			// $insqls[] = $query;
 			$insqls .= $query;
 		}
-		// TODO: Builer for category filter.
+		\tool_eledia_scripts\util::debug_out( "params1:\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out($allparams . "\n", 'catdebg.txt');
+		// TODO: Builder for category filter.
 		$catids = [];
 		foreach ($categories as $category) {
 			if ($excludetype === 'categories')
@@ -371,12 +377,15 @@ class externallib extends external_api {
 		}
 
 		// Expand query for categories.
-		[$insql, $params] = $DB->get_in_or_equal($catids);
-		$allparams = array_merge($allparams, $params);
-		$query = " AND c.category $insql ";
+		if (sizeof($catids)) {
+			[$insql, $params] = $DB->get_in_or_equal($catids);
+			$allparams = array_merge($allparams, $params);
+			$query = " AND c.category $insql ";
+			$insqls .= $query;
+		}
+			
 		// $insqls[] = $query;
-		$insqls .= $query;
-        $chelper = new coursecat_helper();
+        $chelper = new \coursecat_helper();
         // $chelper->set_show_courses(self::COURSECAT_SHOW_COURSES_EXPANDED)->
         $chelper->set_show_courses(20)->
                 set_courses_display_options([
@@ -393,7 +402,7 @@ class externallib extends external_api {
 
         // $comparevalue = $DB->sql_compare_text('cd.value');
 		$course_ids = [];
-		// TODO: Account for parent categories. An extra self join query might be required.
+		// TODO: Account for child categories. An extra self join query might be required.
         $sql = "
            SELECT DISTINCT c.id
              FROM {course} c
@@ -404,9 +413,20 @@ class externallib extends external_api {
 			  AND cat.area = 'course'
 		      $insqls
         ";
+		\tool_eledia_scripts\util::debug_out($sql . "\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out(var_export($allparams, true). "\n", 'catdebg.txt');
+		// $course_ids = array_keys((array) $DB->get_records_sql($sql, $allparams));
 		$course_ids = $DB->get_records_sql($sql, $allparams);
+		$course_ids = array_keys($course_ids);
+
+		\tool_eledia_scripts\util::debug_out( "--------------\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out(var_export($course_ids, true). "\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out(var_export($users_courses, true). "\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out( "--------------\n", 'catdebg.txt');
 		// $courseids_filtered = array_intersect($course_ids, array_keys($users_courses)); // New method gives back array of ids.
-		$courseids_filtered = array_intersect($course_ids, array_keys($users_courses));
+		$courseids_filtered = array_intersect($course_ids, $users_courses);
+		\tool_eledia_scripts\util::debug_out(var_export($courseids_filtered, true). "\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out( "--------------\n", 'catdebg.txt');
 		return $courseids_filtered;
 
 		// Better use get_customfield_value_options() for this.
@@ -421,19 +441,93 @@ class externallib extends external_api {
 		*/
 	}
 
+	// TODO: Change search for array only.
+	// protected static function get_customfield_available_values(array $customfields) {
 	protected static function get_customfield_available_values(array $customfields, array $categories = [], string | int $customfield_id) {
 		$courseids = self::get_filtered_courseids($customfields, $categories, 'customfield', $customfield_id);
 		return self::get_customfield_value_options($customfield_id, $courseids);
 	}
 
-	protected static function get_available_categories(array $customfields): array {
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     */
+    public static function get_available_categories_parameters() {
+        return new external_function_parameters(
+            array(
+                'criteria' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'key' => new external_value(PARAM_ALPHA,
+                                         'The category column to search, expected keys (value format) are:'.
+                                         '"id" (int) the category id,'.
+                                         '"ids" (string) category ids separated by commas,'.
+                                         '"name" (string) the category name,'.
+                                         '"parent" (int) the parent category id,'.
+                                         '"idnumber" (string) category idnumber'.
+                                         ' - user must have \'moodle/category:manage\' to search on idnumber,'.
+                                         '"visible" (int) whether the returned categories must be visible or hidden. If the key is not passed,
+                                             then the function return all categories that the user can see.'.
+                                         ' - user must have \'moodle/category:manage\' or \'moodle/category:viewhiddencategories\' to search on visible,'.
+                                         '"theme" (string) only return the categories having this theme'.
+                                         ' - user must have \'moodle/category:manage\' to search on theme'),
+                            'value' => new external_value(PARAM_RAW, 'the value to match', VALUE_OPTIONAL),
+							'customfields' => new external_multiple_structure(
+								new external_single_structure(
+									// TODO: Define structure.
+									array(
+										new external_value(PARAM_RAW, 'the value to match', VALUE_OPTIONAL),
+									),
+									'custom field objects',
+									VALUE_OPTIONAL
+								),
+								'custom fields',
+								VALUE_OPTIONAL
+							),
+                        )
+                    ), 'criteria', VALUE_DEFAULT, array()
+                ),
+                'addsubcategories' => new external_value(PARAM_BOOL, 'return the sub categories infos
+                                          (1 - default) otherwise only the category info (0)', VALUE_DEFAULT, 1)
+            )
+        );
+    }
+	
+    /**
+     * Returns description of method result value
+     *
+     * @return \core_external\external_description
+     */
+    public static function get_available_categories_returns() {
+		return core_course_external::get_categories_returns();
+    }
+
+	public static function get_available_categories(array $searchdata): array {
 		global $DB;
 		$courseids = [];
 		$whereclause = '';
+		$customfields = [];
 		$inparams = null;
+		$searchterm = '';
 
-		if (sizeof($customfields)) {
-			$courseids = self::get_filtered_courseids($customfields, [], 'categories');
+		\tool_eledia_scripts\util::debug_out( "Category query:\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out( var_export($searchdata, true) . "\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out( "foreach:\n", 'catdebg.txt');
+		// foreach ($searchdata['criteria'] as $key => $val) {
+		foreach ($searchdata as $key => $val) {
+			\tool_eledia_scripts\util::debug_out( var_export($val, true) . "\n", 'catdebg.txt');
+			// $customfields[] = array_splice($searchdata['criteria'][$key];
+			if ($val['key'] !== 'name') {
+				unset($searchdata[$key]);
+				continue;
+			}
+			$searchterm = $val['value'];
+		}
+
+		if (sizeof($searchdata)) {
+			// $courseids = self::get_filtered_courseids($searchdata, [], 'categories');
+			$courseids = self::get_filtered_courseids([], [], 'categories');
 			[$insql, $params] = $DB->get_in_or_equal($courseids);
 			$whereclause = " WHERE c.id $insql ";
 		}
@@ -441,8 +535,14 @@ class externallib extends external_api {
 		if (!sizeof($courseids))
 			return [];
 
+		if (!empty($searchterm)) {
+			$params[] = "%$searchterm%";
+			$whereclause .= " AND cat.name ILIKE ? ";
+		}
 
-		$sql = "SELECT DISTINCT cat.id FROM {course_categories}
+		\tool_eledia_scripts\util::debug_out( "Category course IDs:\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out( var_export($courseids, true) . "\n", 'catdebg.txt');
+		$sql = "SELECT DISTINCT cat.id FROM {course_categories} cat
 			LEFT JOIN {course} c
 			ON c.category = cat.id
 			$whereclause
@@ -452,8 +552,16 @@ class externallib extends external_api {
 		foreach ($categories = $DB->get_records_sql($sql, $params) as $category) {
 			$catids[] = $category->id;
 		}
+		If (!sizeof($catids))
+			return [];
 
-		$categories = \core_course_external::get_courses(['ids' => $catids, 'limit' => 6]);
+		\tool_eledia_scripts\util::debug_out( "Category IDs:\n", 'catdebg.txt');
+		\tool_eledia_scripts\util::debug_out( var_export($catids, true) . "\n", 'catdebg.txt');
+		// $categories = \core_course_external::get_categories(['ids' => $catids, 'limit' => 6]);
+		$parameters = [
+			[ 'key' => 'ids', 'value' => implode(',', $catids) ],
+		];
+		$categories = \core_course_external::get_categories($parameters);
 		return $categories;
 	}
 
