@@ -25,7 +25,7 @@ $functions = [
         'description' => 'Return category details',
         'type' => 'read',
         // 'capabilities' => 'moodle/category:viewhiddencategories',
-
+		'ajax' => true,
         // An optional list of services where the function will be included.
         /*'services' => [*/
         /*    // A standard Moodle install includes one default service:*/

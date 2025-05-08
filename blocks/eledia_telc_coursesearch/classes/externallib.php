@@ -507,6 +507,7 @@ class externallib extends external_api {
 		global $DB;
 		$courseids = [];
 		$whereclause = '';
+		$params = null;
 		$customfields = [];
 		$inparams = null;
 		$searchterm = '';
@@ -525,9 +526,9 @@ class externallib extends external_api {
 			$searchterm = $val['value'];
 		}
 
-		if (sizeof($searchdata)) {
+		if (sizeof($searchdata) && sizeof($courseids = self::get_filtered_courseids([], [], 'categories'))) {
 			// $courseids = self::get_filtered_courseids($searchdata, [], 'categories');
-			$courseids = self::get_filtered_courseids([], [], 'categories');
+			// $courseids = self::get_filtered_courseids([], [], 'categories');
 			[$insql, $params] = $DB->get_in_or_equal($courseids);
 			$whereclause = " WHERE c.id $insql ";
 		}
