@@ -35,4 +35,21 @@ $functions = [
         /*    MOODLE_OFFICIAL_MOBILE_SERVICE,*/
         /*]*/
     ],
+    'block_eledia_telc_coursesearch_get_courseview' => [
+        'classname' => 'block_eledia_telc_coursesearch\externallib',
+        'methodname' => 'get_courseview',
+        // 'classpath' => 'course/externallib.php',
+        'description' => 'Return category details',
+        'type' => 'read',
+        // 'capabilities' => 'moodle/category:viewhiddencategories',
+		'ajax' => true,
+        // An optional list of services where the function will be included.
+        /*'services' => [*/
+        /*    // A standard Moodle install includes one default service:*/
+        /*    // - MOODLE_OFFICIAL_MOBILE_SERVICE.*/
+        /*    // Specifying this service means that your function will be available for*/
+        /*    // use in the Moodle Mobile App.*/
+        /*    MOODLE_OFFICIAL_MOBILE_SERVICE,*/
+        /*]*/
+    ],
 ];
