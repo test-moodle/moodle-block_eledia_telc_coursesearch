@@ -383,6 +383,7 @@ class externallib extends external_api {
 		$searchdata = [];
 		foreach ($data as $value) {
 			[$name, $filterdata] = match ($value['key']) {
+				'currentCustomField' => ['current_customfield', (int) $value['value']],
 				'selectedCategories' => ['categories', $value['categories']],
 				'selectedCustomfields' => ['customfields', $value['customfields']],
 				// 'searchterm' => ['searchterm', $value['searchterm']],
@@ -416,7 +417,7 @@ class externallib extends external_api {
 	// INFO: Customfield queries are separate from course search. Two DB queries are required to populate a field through search.
 	// INFO: There is no need to send data about which fields are selected because it can be managed stateful by frontend.
 
-	protected static function get_filtered_courseids(array $customfields, array $categories = [], string $searchterm = '', string $excludetype = 'customfield', string | int $excludevalue = 0, int $limit = 0, int $offset = 0) {
+	protected static function get_filtered_courseids(array $customfields, array $categories = [], string $searchterm = '', string $excludetype = 'customfield', string | int $excludevalue = 0, int $limit = 0, int $offset = 0, $contextids = false) {
 		global $DB, $USER;
 		self::validate_context(\context_user::instance($USER->id));
 		// $insqls = [];
@@ -466,14 +467,16 @@ class externallib extends external_api {
         $chelper->set_attributes(array('class' => 'frontpage-course-list-all'));
         $users_courses = core_course_category::top()->get_courses($chelper->get_courses_display_options());
 		
+		$id_type = $contextids ? 'ctx.id' : 'c.id';
 
         // $comparevalue = $DB->sql_compare_text('cd.value');
 		$course_ids = [];
 		// TODO: Account for child categories. An extra self join query might be required.
         $sql = "
-           SELECT DISTINCT c.id
+           SELECT DISTINCT $id_type
              FROM {course} c
-        LEFT JOIN {customfield_data} cd ON cd.instanceid = c.id
+		LEFT JOIN {context} ctx ON c.id = ctx.instanceid
+        LEFT JOIN {customfield_data} cd ON cd.contextid = ctx.id
 		LEFT JOIN {customfield_field} f ON f.id = cd.fieldid
 		LEFT JOIN {customfield_category} cat ON cat.id = f.categoryid
 		    WHERE cat.component = 'core_course'
@@ -483,7 +486,10 @@ class externallib extends external_api {
 		if (!empty($searchterm)) {
 			$allparams[] = "%$searchterm%";
 			$allparams[] = "%$searchterm%";
-			$sql .= " AND (c.fullname ILIKE ? OR c.shortname ILIKE ?) ";
+			$fullname_like = $DB->sql_like('c.fullname', '?');
+			$shortname_like = $DB->sql_like('c.shortname', '?');
+			// $sql .= " AND (c.fullname ILIKE ? OR c.shortname ILIKE ?) ";
+			$sql .= " AND ($fullname_like OR $shortname_like) ";
 		}
 
 		if ($limit) {
@@ -573,7 +579,8 @@ class externallib extends external_api {
 							'customfields' => new external_multiple_structure(
 								new external_single_structure(
 									array(
-										new external_value(PARAM_RAW, 'the value to match', VALUE_OPTIONAL),
+										'fieldid' => new external_value(PARAM_INT, 'the value to match', VALUE_OPTIONAL),
+										'fieldvalue' => new external_value(PARAM_TEXT, 'the value to match', VALUE_OPTIONAL),
 									),
 									'custom field objects',
 									VALUE_OPTIONAL
@@ -680,6 +687,96 @@ class externallib extends external_api {
 		$categories = \core_course_external::get_categories($parameters);
 		return $categories;
 	}
+
+    /**
+     * Export IDs of all visible custom fields.
+     */
+	public static function get_customfield_fields(bool $info = false): array {
+		global $DB;
+		$sql = "
+		SELECT f.id, f.name, f.configdata FROM {customfield_field} f
+		INNER JOIN {customfield_category} c
+		ON c.id = f.categoryid
+		WHERE c.area = 'course'
+		";
+		$customfields = $DB->get_records_sql($sql);
+		if (!$customfields)
+			return [];
+
+		$map_function = $info ? 'self::map_customfield_info' : 'self::map_customfield_ids';
+
+		$custom_ids = array_map($map_function, $customfields);
+		return $custom_ids;
+	}
+
+	public static function map_customfield_ids($customfield) {
+		$configdata = json_decode($customfield->configdata);
+		if ((int) $configdata->visibility ===  2)
+			return $customfield->id;
+	}
+
+	public static function map_customfield_info($customfield) {
+		$configdata = json_decode($customfield->configdata);
+		if ((int) $configdata->visibility ===  2)
+			return ['id' => $customfield->id, 'name' => $customfield->name];
+	}
+	
+	public static function get_customfields() {
+		return self::get_customfield_fields(true);
+	}
+	
+	public static function get_customfield_available_options(array $data): array {
+		global $DB;
+		$customfield_fieldids = self::get_customfield_fields();
+
+		[$searchdata, $customfields, $categories] = self::remap_searchdata($data);
+
+		if (!in_array($searchdata['current_customfield'], $customfield_fieldids))
+			return [];
+		$course_contextids = self::get_filtered_courseids($customfields, $categories, $searchdata['searchterm'], $searchdata['current_customfield'], 0, 0, 0, true);
+
+		[$insql, $inparams] = $DB->get_in_or_equal($course_contextids, SQL_PARAMS_NAMED);
+		$inparams['fieldid'] = $searchdata['current_customfield'];
+		// $customfield_data_ids = $DB->get_records_select('customfield_data', "contextid $insql AND fieldid = ?", $inparams, 'id');
+		$select =  "contextid $insql AND fieldid = :fieldid";
+        $distinctablevalue = $DB->sql_compare_text('value');
+        $values = $DB->get_records_select_menu('customfield_data', $select, $inparams, '',
+            "DISTINCT $distinctablevalue, $distinctablevalue AS value2");
+        \core_collator::asort($values, \core_collator::SORT_NATURAL);
+        $values = array_filter($values);
+        if (!$values) {
+            return [];
+        }
+        $field = \core_customfield\field_controller::create($fieldid);
+        $isvisible = $field->get_configdata_property('visibility') == \core_course\customfield\course_handler::VISIBLETOALL;
+        // Only visible fields to everybody supporting course grouping will be displayed.
+        if (!$field->supports_course_grouping() || !$isvisible) {
+            return []; // The field shouldn't have been selectable in the global settings, but just skip it now.
+        }
+        if (!defined('BLOCK_MYOVERVIEW_CUSTOMFIELD_EMPTY')) {
+            define('BLOCK_MYOVERVIEW_CUSTOMFIELD_EMPTY', -1);
+        }
+        $values = $field->course_grouping_format_values($values);
+        // $customfieldactive = ($this->grouping === BLOCK_ETCOURSESEARCH_GROUPING_CUSTOMFIELD);
+        // $customfieldactive = ($this->grouping === 'customfield');
+        $ret = [];
+        foreach ($values as $value => $name) {
+            $ret[] = $name;
+			/*
+            $ret[] = (object)[
+                'name' => $name,
+                'value' => $value,
+                'active' => ($customfieldactive && ($this->customfieldvalue == $value)),
+            ];
+			*/
+        }
+        return $ret;
+	}
+	
+	public static function get_customfield_available_options_parameters() {
+		return self::get_available_parameters();
+	}
+
 
 	protected static function get_customfield_value_options(int | string $fieldid, array $courseids) {
 		// See get_customfield_values_for_export() in main.php and get_config_for_external() in block_eledia...php

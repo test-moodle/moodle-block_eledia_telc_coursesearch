@@ -24,6 +24,7 @@
 namespace block_eledia_telc_coursesearch\output;
 defined('MOODLE_INTERNAL') || die();
 
+use block_eledia_telc_coursesearch\externallib;
 use core_competency\url;
 use renderable;
 use renderer_base;
@@ -494,6 +495,7 @@ class main implements renderable, templatable {
             'displaygroupinghidden' => $this->displaygroupinghidden,
             'displaygroupingselector' => $this->displaygroupingselector,
             'displaygroupingcustomfield' => $this->displaygroupingcustomfield && $customfieldvalues,
+			'customfields' => externallib::get_customfields(),
             'customfieldname' => $this->customfiltergrouping,
             'customfieldvalue' => $this->customfieldvalue,
             'customfieldvalues' => $customfieldvalues,
