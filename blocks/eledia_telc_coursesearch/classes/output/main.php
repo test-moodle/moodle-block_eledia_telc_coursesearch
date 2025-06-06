@@ -495,7 +495,8 @@ class main implements renderable, templatable {
             'displaygroupinghidden' => $this->displaygroupinghidden,
             'displaygroupingselector' => $this->displaygroupingselector,
             'displaygroupingcustomfield' => $this->displaygroupingcustomfield && $customfieldvalues,
-			'customfields' => externallib::get_customfields(),
+			// I know, it's pretty.
+			'customfields' => array_values(array_filter(externallib::get_customfields(), fn($value) => !is_null($value) )),
             'customfieldname' => $this->customfiltergrouping,
             'customfieldvalue' => $this->customfieldvalue,
             'customfieldvalues' => $customfieldvalues,
