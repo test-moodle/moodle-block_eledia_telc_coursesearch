@@ -454,11 +454,14 @@ class externallib extends external_api {
 			$query = " AND c.category $insql ";
 			$insqls .= $query;
 		}
+		$context = \context_system::instance();
+		// \require_capability('moodle/course:view', $context);
 			
 		// $insqls[] = $query;
         $chelper = new \coursecat_helper();
         // $chelper->set_show_courses(self::COURSECAT_SHOW_COURSES_EXPANDED)->
-        $chelper->set_show_courses(20)->
+        //$chelper->set_show_courses(20)->
+        $chelper->set_show_courses(\core_course_renderer::COURSECAT_SHOW_COURSES_EXPANDED)->
                 set_courses_display_options([
 				'recursive' => true,
 				'idonly' => true,
@@ -486,6 +489,16 @@ class externallib extends external_api {
 		LEFT JOIN {customfield_category} cat ON cat.id = f.categoryid
 		    WHERE cat.component = 'core_course'
 			  AND cat.area = 'course'
+		      $insqls
+        ";
+        $sql = "
+           SELECT DISTINCT $id_type
+             FROM {course} c
+		LEFT JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = $contextlevel
+        LEFT JOIN {customfield_data} cd ON cd.contextid = ctx.id
+		LEFT JOIN {customfield_field} f ON f.id = cd.fieldid
+		LEFT JOIN {customfield_category} cat ON cat.id = f.categoryid
+		WHERE (cat.component IS NULL OR (cat.component = 'core_course' AND cat.area = 'course'))
 		      $insqls
         ";
 		if (!empty($searchterm)) {
