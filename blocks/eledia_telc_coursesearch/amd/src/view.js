@@ -67,11 +67,14 @@ let namespace = null;
 
 let selectedCategories = [];
 let selectableCategories = [];
+let selectedTags = [];
+let selectableTags = [];
 let customfields = [];
 let filteredCustomfields = [];
 let selectedCustomfields = [];
 let searchTerm = '';
 let catSearchTerm = '';
+let tagsSearchTerm = '';
 let courseInProgress = 'all';
 let currentCustomField = 0;
 
@@ -197,6 +200,16 @@ const getSearchCategories = () => {
 };
 
 /**
+ * Search for tags from backend.
+ *
+ * @return {promise} Resolved with an array of categories.
+ */
+const getSearchTags = () => {
+    const params = getParams();
+    return Repository.getTags(params);
+};
+
+/**
  * Search for custom fields from backend.
  *
  * @return {promise} Resolved with an array of categories.
@@ -221,16 +234,16 @@ const getParams = (limit = 0) => {
                 value: catSearchTerm,
             },
             {
+                key: "tagsName",
+                value: tagsSearchTerm,
+            },
+            {
                 key: 'name',
                 value: searchTerm,
             },
             {
                 key: 'selectedCategories',
                 categories: selectedCategories,
-            },
-            {
-                key: 'currentCustomField',
-                value: currentCustomField,
             },
             {
                 key: 'limit',
@@ -245,8 +258,16 @@ const getParams = (limit = 0) => {
                 value: courseInProgress,
             },
             {
+                key: 'currentCustomField',
+                value: currentCustomField,
+            },
+            {
                 key: 'selectedCustomfields',
                 customfields: getCustomFields(),
+            },
+            {
+                key: 'selectedTags',
+                tags: selectedTags,
             },
         ],
         addsubcategories: true,
@@ -684,39 +705,29 @@ const renderCategories = (dropdownContainer, dropdown, categoriesData, selection
 
 /**
  * Render the categories in search dropdown.
- * TODO: Implement
  *
  * @param {string} dropdownContainer The categories element for the courses view.
  * @param {string} dropdown The categories element for the courses view.
- * @param {array} categoriesData containing array of returned categories.
+ * @param {array} tagsData containing array of returned categories.
  * @param {array} selectionsData containing array of selected categories.
  * @param {object} page The page object.
  * @return {promise} jQuery promise resolved after rendering is complete.
  */
-/*
-const renderCustomfields = (dropdownContainer, dropdown, customfieldsData, selectionsData, page) => {
+const renderTags = (dropdownContainer, dropdown, tagsData, selectionsData, page) => {
 
-    // const filters = getFilterValues(categories);
-
-    const template = 'block_eledia_telc_coursesearch/nav-customfield-dropdown';
+    const template = 'block_eledia_telc_coursesearch/nav-tags-dropdown';
 
     // NOTE: Render function for mustache.
-    window.console.log('render customfieldsData');
     return Templates.renderForPromise(template, {
-        customvalues: customfieldsData,
-        customselections: selectionsData,
-        customfieldid: currentCustomField,
+        tags: tagsData,
+        tagsselections: selectionsData,
     }).then(({ html, js }) => {
-        window.console.log('replaceNodeContents');
-        window.console.log(html);
-        window.console.log(js);
         const renderResult = Templates.replaceNodeContents(dropdownContainer, html, js);
         const catDropdown = page.querySelector(dropdown);
         catDropdown.style.display = 'block';
         return renderResult;
     }).catch(error => displayException(error));
 };
-*/
 
 /**
  * Render the categories in search dropdown.
@@ -963,6 +974,34 @@ const catSearchFunctionality = () => {
 };
 
 /**
+ * Initialize the tags searching functionality so we can call it when required.
+ *
+ * @return {function(Object): void}
+ */
+const tagsSearchFunctionality = () => {
+    return (dropdownContainer, dropdown, page, selectedTags) => {
+        const searchingPromise = getSearchTags().then(tagsData => {
+            // NOTE: Here it goes.
+            selectableTags = tagsData;
+            selectedTags.forEach((selected) => {
+                const tagsIndex = selectableTags.findIndex(item => item.id == selected.id);
+                if (tagsIndex !== -1) {
+                    selectableTags.splice(tagsIndex, 1);
+                }
+            });
+            //return renderCategories(dropdownContainer, dropdown, categoriesData, page);
+            return renderTags(dropdownContainer, dropdown, selectableTags, selectedTags, page);
+            //pageBuilder(categoriesData, actions);
+            //return renderCategories(root, loadedPages[currentPage]);
+        }).catch(Notification.exception);
+
+        // promises.push(searchingPromise);
+        // window.console.log(searchingPromise);
+        return searchingPromise;
+    };
+};
+
+/**
  * Initialize the custom field searching functionality so we can call it when required.
  *
  * @return {function(Object): void}
@@ -1083,11 +1122,32 @@ const initializeCategorySearchContent = (dropdownContainer,
     promiseFunction,
     page,
     selectedCategories) => {// eslint-disable-line
-    const $categories = promiseFunction(dropdownContainer,
+    const categories = promiseFunction(dropdownContainer,
         dropdown,
         page,
         selectedCategories);
-    window.console.log($categories);
+    window.console.log(categories);
+};
+
+/**
+ * Initialise the list of tags in the search dropdown.
+ *
+ * @param {string} dropdownContainer The dropdown container element.
+ * @param {string} dropdown The dropdown element for the search results.
+ * @param {function} promiseFunction How do we fetch the categories and what do we do with them?
+ * @param {object} page The page object.
+ * @param {object} selectedTags
+ */
+const initializeTagsSearchContent = (dropdownContainer,
+    dropdown,
+    promiseFunction,
+    page,
+    selectedTags) => {// eslint-disable-line
+    const categories = promiseFunction(dropdownContainer,
+        dropdown,
+        page,
+        selectedTags);
+    window.console.log(categories);
 };
 
 /**
@@ -1160,12 +1220,16 @@ const registerEventListeners = (root, page) => {
     const input = page.querySelector(SELECTORS.region.searchInput);
     const clearIcon = page.querySelector(SELECTORS.region.clearIcon);
     const catinput = page.querySelector(SELECTORS.cat.input);
+    const tagsinput = page.querySelector(SELECTORS.tags.input);
     const customInputs = page.querySelectorAll(SELECTORS.customfields.input);
     const clearCatIcon = page.querySelector(SELECTORS.cat.clearIcon);
+    const clearTagsIcon = page.querySelector(SELECTORS.tags.clearIcon);
     const clearCustomfieldIcons = page.querySelectorAll(SELECTORS.customfields.clearIcon);
     const customClass = SELECTORS.customfields.searchfield;
     const catSelectable = SELECTORS.cat.selectableItem;
     const catSelected = SELECTORS.cat.selectedItem;
+    const tagsSelectable = SELECTORS.tags.selectableItem;
+    const tagsSelected = SELECTORS.tags.selectedItem;
     const customfieldSelectable = SELECTORS.customfields.selectableItem;
     const customfieldSelected = SELECTORS.customfields.selectedItem;
     const groupingFilter = page.querySelectorAll(SELECTORS.FILTER_GROUPING);
@@ -1189,6 +1253,20 @@ const registerEventListeners = (root, page) => {
             catSearchFunctionality(),
             page,
             selectedCategories);
+    });
+
+    clearTagsIcon.addEventListener('click', () => {
+        window.console.log('CLICKED clearCatIcon');
+        tagsSearchTerm = '';
+        tagsinput.value = '';
+        tagsinput.focus();
+        clearCatSearch(clearTagsIcon);
+        initializeTagsSearchContent(
+            SELECTORS.tags.dropdownDiv,
+            SELECTORS.tags.dropdown,
+            tagsSearchFunctionality(),
+            page,
+            selectedTags);
     });
 
     clearCustomfieldIcons.forEach(icon => {
@@ -1298,7 +1376,40 @@ const registerEventListeners = (root, page) => {
         }
     }, 1000));
 
+    // Initialize tags search dropdown on first click.
+    tagsinput.addEventListener('click', () => {
+        initializeTagsSearchContent(
+            SELECTORS.tags.dropdownDiv,
+            SELECTORS.tags.dropdown,
+            tagsSearchFunctionality(),
+            page,
+            selectedTags);
+    });
+
+    tagsinput.addEventListener('input', debounce(() => {
+        if (tagsinput.value === '') {
+            clearCatSearch(clearTagsIcon);
+            tagsSearchTerm = '';
+            initializeTagsSearchContent(
+                SELECTORS.tags.dropdownDiv,
+                SELECTORS.tags.dropdown,
+                tagsSearchFunctionality(),
+                page,
+                selectedTags);
+        } else {
+            activeSearch(clearTagsIcon);
+            tagsSearchTerm = tagsinput.value.trim();
+            initializeTagsSearchContent(
+                SELECTORS.tags.dropdownDiv,
+                SELECTORS.tags.dropdown,
+                tagsSearchFunctionality(),
+                page,
+                selectedTags);
+        }
+    }, 1000));
+
     document.body.addEventListener('click', manageCategorydropdownCollapse);
+    document.body.addEventListener('click', manageTagsdropdownCollapse);
     document.body.addEventListener('click', manageCustomfielddropdownCollapse);
 
     document.body.addEventListener('click', (e) => {
@@ -1311,6 +1422,22 @@ const registerEventListeners = (root, page) => {
                 SELECTORS.cat.dropdownDiv,
                 SELECTORS.cat.dropdown,
                 catSearchFunctionality(),
+                page);
+            // TODO: Initialize search on *every* change.
+            initializePagedContent(root, searchFunctionalityCurry(), input.value.trim(), getParams());
+        }
+    });
+
+    document.body.addEventListener('click', (e) => {
+        if (e.target.classList.contains(tagsSelected) || e.target.classList.contains(tagsSelectable)) {
+            e.preventDefault();
+            manageTagsdropdownItems(
+                e,
+                tagsSelected,
+                tagsSelectable,
+                SELECTORS.tags.dropdownDiv,
+                SELECTORS.tags.dropdown,
+                tagsSearchFunctionality(),
                 page);
             // TODO: Initialize search on *every* change.
             initializePagedContent(root, searchFunctionalityCurry(), input.value.trim(), getParams());
@@ -1443,6 +1570,22 @@ const manageCategorydropdownCollapse = (e) => {
 };
 
 /**
+ * Hide tags dropdown if clicked outside category search.
+ *
+ * @param {PointerEvent} e a click.
+ */
+const manageTagsdropdownCollapse = (e) => {
+    const page = document.querySelector(SELECTORS.region.selectBlock);
+    const tagsDropdown = page.querySelector(SELECTORS.tags.dropdown);
+    if (!e.target.classList.contains('tagsprevent') && !e.target.classList.contains('fa-xmark')) {
+        tagsDropdown.style.display = 'none';
+    } else if (e.target.classList.contains('tagsprevent') && !e.target.classList.contains('fa-xmark')) {
+        tagsDropdown.style.display = 'block';
+    }
+
+};
+
+/**
  * TODO: complete
  * Hide category dropdown if clicked outside category search.
  *
@@ -1471,6 +1614,39 @@ const manageCategorydropdownItems = (e, selected, selectable, dropdownDiv, dropd
         const renderResult = Templates.replaceNodeContents(dropdownDiv, html, js);
         const catDropdown = page.querySelector(dropdown);
         catDropdown.style.display = 'block';
+        return renderResult;
+    }).catch(error => displayException(error));
+};
+
+/**
+ * TODO: complete
+ * Hide category dropdown if clicked outside category search.
+ *
+ * @param {PointerEvent} e a click.
+ * @param {string} selected
+ * @param {string} selectable
+ * @param {string} dropdownDiv
+ * @param {string} dropdown
+ * @param {object} promiseFunction
+ * @param {object} page
+ **/
+const manageTagsdropdownItems = (e, selected, selectable, dropdownDiv, dropdown, promiseFunction, page) => {// eslint-disable-line
+    const template = 'block_eledia_telc_coursesearch/nav-tags-dropdown';
+    const tagsId = e.target.dataset.tagsId;
+    if (e.target.classList.contains(selectable)) {
+        const tagsIndex = selectableTags.findIndex(value => value.id == tagsId);
+        selectedTags.push(selectableTags.splice(tagsIndex, 1)[0]);
+    } else {
+        const tagsIndex = selectedTags.findIndex(value => value.id == tagsId);
+        selectableTags.push(selectedTags.splice(tagsIndex, 1)[0]);
+    }
+    return Templates.renderForPromise(template, {
+        tags: selectableTags,
+        tagsselections: selectedTags,
+    }).then(({ html, js }) => {
+        const renderResult = Templates.replaceNodeContents(dropdownDiv, html, js);
+        const tagsDropdown = page.querySelector(dropdown);
+        tagsDropdown.style.display = 'block';
         return renderResult;
     }).catch(error => displayException(error));
 };

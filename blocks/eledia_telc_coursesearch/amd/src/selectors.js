@@ -54,6 +54,17 @@ export default {
         selectedItem: 'category-selected',
         noItem: 'category-no',
     },
+    tags: {
+        prevent: '.tagsprevent',
+        clearIcon: '[data-action="cleartagssearch"]',
+        input: '[data-action="tagssearch"]',
+        search: '.tagssearch',
+        dropdown: '.dropdown-tags',
+        dropdownDiv: '.tags-droprown-container',
+        selectableItem: 'tags-selectable',
+        selectedItem: 'tags-selected',
+        noItem: 'tags-no',
+    },
     customfields: {
         clearIcon: '[data-action="clearcustomsearch"]',
         input: '[data-action="customsearch"]',

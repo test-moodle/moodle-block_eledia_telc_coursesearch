@@ -351,8 +351,8 @@ class externallib extends external_api {
 		\tool_eledia_scripts\util::debug_out("data\n", 'viewdbg.txt');
 		\tool_eledia_scripts\util::debug_out(var_export($data, true). "\n", 'viewdbg.txt');
 		$courseids = [];
-		[$searchdata, $customfields, $categories] = self::remap_searchdata($data);
-		$courseids = self::get_filtered_courseids($customfields, $categories, $searchdata['searchterm'], '', 0, $searchdata['limit'], $searchdata['offset'], false, $searchdata['progress']);
+		[$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
+		$courseids = self::get_filtered_courseids($customfields, $categories, $tags, $searchdata['searchterm'], '', 0, $searchdata['limit'], $searchdata['offset'], false, $searchdata['progress']);
 		if (!sizeof($courseids))
 			return self::zero_response();
 		[$insql, $inparams] = $DB->get_in_or_equal($courseids);
@@ -388,9 +388,11 @@ class externallib extends external_api {
 				'currentCustomField' => ['current_customfield', (int) $value['value']],
 				'selectedCategories' => ['categories', $value['categories']],
 				'selectedCustomfields' => ['customfields', $value['customfields']],
+				'selectedTags' => ['tags', $value['tags']],
 				// 'searchterm' => ['searchterm', $value['searchterm']],
 				'name' => ['searchterm', $value['value']],
 				'categoryName' => ['catsearchterm', $value['value']],
+				'tagsName' => ['tagssearchterm', $value['value']],
 				'limit' => ['limit', $value['value']],
 				'offset' => ['offset', $value['value']],
 				'progress' => ['progress', $value['value']],
@@ -400,7 +402,8 @@ class externallib extends external_api {
 		}
 		$customfields = $searchdata['customfields'];
 		$categories = array_map('self::filterparams', $searchdata['categories']);
-		return [$searchdata, $customfields, $categories];
+		$tags = array_map('self::filterparams', $searchdata['tags']);
+		return [$searchdata, $customfields, $categories, $tags];
 	}
 
     /**
@@ -421,7 +424,7 @@ class externallib extends external_api {
 	// NOTE: Oops. Theoretically. Due to time constraints for development it is four.
 	// INFO: There is no need to send data about which fields are selected because it can be managed stateful by frontend.
 
-	protected static function get_filtered_courseids(array $customfields, array $categories = [], string $searchterm = '', string $excludetype = 'customfield', string | int $excludevalue = 0, int $limit = 0, int $offset = 0, $contextids = false, $progress = 'all') {
+	protected static function get_filtered_courseids(array $customfields, array $categories = [], array $tags = [], string $searchterm = '', string $excludetype = 'customfield', string | int $excludevalue = 0, int $limit = 0, int $offset = 0, $contextids = false, $progress = 'all') {
 		global $DB, $USER;
 		self::validate_context(\context_user::instance($USER->id));
 		// Build query for all courses that have the customfield selection minus the one in question.
@@ -430,6 +433,7 @@ class externallib extends external_api {
 		$allparams = [];
 		$customfield_id = $excludetype === 'customfield' ? (string) $excludevalue : -1;
 		foreach ($customfields as $customfield) {
+			// TODO: The int conversion should be changed to sql parameter.
 			if ((int) $customfield['fieldid'] === (int) $customfield_id || !sizeof($customfield['fieldvalues'])) {
 					continue;
 			}
@@ -452,6 +456,19 @@ class externallib extends external_api {
 			[$insql, $params] = $DB->get_in_or_equal($categories);
 			$allparams = array_merge($allparams, $params);
 			$query = " AND c.category $insql ";
+			$insqls .= $query;
+		}
+		
+		// Builder for tags filter.
+		$tagsql = '';
+		if ($excludetype === 'tags')
+			$categories = [];
+
+		if (sizeof($tags)) {
+			$tagsql = " LEFT JOIN {tag_instance} ti ON ti.itemtype = 'course' AND ti.component = 'core' AND ti.itemid = c.id ";
+			[$insql, $params] = $DB->get_in_or_equal($tags);
+			$allparams = array_merge($allparams, $params);
+			$query = " AND (ti.itemtype = 'course' AND ti.component = 'core' AND ti.itemid = c.id AND ti.tagid $insql ) ";
 			$insqls .= $query;
 		}
 		$context = \context_system::instance();
@@ -487,6 +504,7 @@ class externallib extends external_api {
         LEFT JOIN {customfield_data} cd ON cd.contextid = ctx.id
 		LEFT JOIN {customfield_field} f ON f.id = cd.fieldid
 		LEFT JOIN {customfield_category} cat ON cat.id = f.categoryid
+		$tagsql
 		    WHERE cat.component = 'core_course'
 			  AND cat.area = 'course'
 		      $insqls
@@ -498,6 +516,7 @@ class externallib extends external_api {
         LEFT JOIN {customfield_data} cd ON cd.contextid = ctx.id
 		LEFT JOIN {customfield_field} f ON f.id = cd.fieldid
 		LEFT JOIN {customfield_category} cat ON cat.id = f.categoryid
+		$tagsql
 		WHERE (cat.component IS NULL OR (cat.component = 'core_course' AND cat.area = 'course'))
 		      $insqls
         ";
@@ -533,13 +552,10 @@ class externallib extends external_api {
 			$allparams[] = $limit;
 			$allparams[] = $offset;
 		}
-		// throw new \Exception($sql . "#######\n" . var_export($allparams, true));
 
-		// $ids_unfiltered = array_keys((array) $DB->get_records_sql($sql, $allparams));
 		$ids_unfiltered = $DB->get_records_sql($sql, $allparams);
 		$ids_unfiltered = array_keys($ids_unfiltered);
 
-		// $courseids_filtered = array_intersect($course_ids, array_keys($users_courses)); // New method gives back array of ids.
 		if ($contextids) {
 			[$insql, $inparams] = $DB->get_in_or_equal($users_courses);
 			$context_ids = array_keys($DB->get_records_select('context', " instanceid $insql AND contextlevel = $contextlevel ", $inparams, 'id', 'id'));
@@ -549,16 +565,6 @@ class externallib extends external_api {
 		}
 		return $ids_filtered;
 
-		// Better use get_customfield_value_options() for this.
-		/*
-		[$insql, $params] = $DB->get_in_or_equal((array) $course_ids);
-		$sql = "
-		   SELECT DISTINCT cd.fieldid, cd.value
-			 FROM {customfield_data} cd
-		     JOIN {course} c ON cd.instanceid = c.id AND cd.value = :value
-			WHERE c.id $insql
-					   ";
-		*/
 	}
 	
 	protected static function get_courses_rendered(array $courses, int $offset): array {
@@ -593,8 +599,8 @@ class externallib extends external_api {
 	// TODO: Do I need this anymore?
 	// protected static function get_customfield_available_values(array $data) {
 	protected static function get_customfield_available_values(array $data) {
-		[$searchdata, $customfields, $categories] = self::remap_searchdata($data);
-		$courseids = self::get_filtered_courseids($customfields, $categories, $searchdata['searchterm'], 'customfield', $searchdata['current_customfield']);
+		[$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
+		$courseids = self::get_filtered_courseids($customfields, $categories, $tags, $searchdata['searchterm'], 'customfield', $searchdata['current_customfield']);
 		return self::get_customfield_value_options(
 			$searchdata, 
 			$customfields, 
@@ -628,6 +634,18 @@ class externallib extends external_api {
 									VALUE_OPTIONAL
 								),
 								'custom fields',
+								VALUE_OPTIONAL
+							),
+							'tags' => new external_multiple_structure(
+								new external_single_structure(
+									array(
+										'id' => new external_value(PARAM_INT, 'Tag ID'),
+										'name' => new external_value(PARAM_TEXT, 'Display name of the tag'),
+									),
+									'List of tags',
+									VALUE_OPTIONAL
+								), 
+								'all tags', 
 								VALUE_OPTIONAL
 							),
 							'categories' => new external_multiple_structure(
@@ -692,11 +710,11 @@ class externallib extends external_api {
 		$params = null;
 
 
-		[$searchdata, $customfields, $categories] = self::remap_searchdata($data);
+		[$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
 		\tool_eledia_scripts\util::debug_out( "Category query:\n", 'catdebg.txt');
 		\tool_eledia_scripts\util::debug_out( var_export($searchdata, true) . "\n", 'catdebg.txt');
 		\tool_eledia_scripts\util::debug_out( "foreach:\n", 'catdebg.txt');
-		if (sizeof($searchdata) && sizeof($courseids = self::get_filtered_courseids($customfields, [], $searchdata['searchterm'], 'categories', 0, 0, 0, false, $searchdata['progress']))) {
+		if (sizeof($searchdata) && sizeof($courseids = self::get_filtered_courseids($customfields, [], $tags, $searchdata['searchterm'], 'categories', 0, 0, 0, false, $searchdata['progress']))) {
 			[$insql, $params] = $DB->get_in_or_equal($courseids);
 			$whereclause = " WHERE c.id $insql ";
 		}
@@ -732,6 +750,63 @@ class externallib extends external_api {
 		];
 		$categories = \core_course_external::get_categories($parameters);
 		return $categories;
+	}
+
+    /**
+     * Returns description of method result value
+     *
+     * @return \core_external\external_description
+     */
+	public static function get_available_tags_returns() {
+    return new external_multiple_structure(
+        new external_single_structure(
+            array(
+                'id' => new external_value(PARAM_INT, 'Tag ID'),
+                'name' => new external_value(PARAM_TEXT, 'Display name of the tag'),
+            ),
+            'List of tags',
+			VALUE_OPTIONAL
+        )
+    );
+}
+
+	public static function get_available_tags_parameters() {
+		return self::get_available_parameters();
+	}
+
+	public static function get_available_tags(array $data): array {
+		global $DB;
+		$courseids = [];
+		$params = null;
+		$tags = [];
+
+
+		[$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
+		if (!sizeof($searchdata) || !sizeof($courseids = self::get_filtered_courseids($customfields, $categories, [], $searchdata['searchterm'], 'tags', 0, 0, 0, false, $searchdata['progress']))) {
+			return [];
+		}
+
+
+		[$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
+		$searchterm = strtolower($searchdata['tagssearchterm']);
+		if (!empty($searchterm)) {
+			$tagname_like = $DB->sql_like('t.name', ':tags_name', false);
+			$params['tags_name'] = "%$searchterm%";
+			$and = " AND $tagname_like ";
+		}
+		$sql = "
+		SELECT DISTINCT t.id, t.name
+		FROM {tag} t
+		JOIN {tag_instance} ti ON ti.tagid = t.id
+		WHERE ti.itemtype = 'course' AND ti.component = 'core' $and AND ti.itemid $insql 
+		";
+
+		$tags = $DB->get_records_sql($sql, $params);
+
+		If (!sizeof($tags))
+			return [];
+
+		return $tags;
 	}
 
     /**
@@ -776,11 +851,11 @@ class externallib extends external_api {
 		global $DB;
 		$customfield_fieldids = self::get_customfield_fields();
 
-		[$searchdata, $customfields, $categories] = self::remap_searchdata($data);
+		[$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
 
 		if (!in_array($searchdata['current_customfield'], $customfield_fieldids))
 			return [];
-		$course_contextids = self::get_filtered_courseids($customfields, $categories, $searchdata['searchterm'], 'customfield', $searchdata['current_customfield'], 0, 0, true, $searchdata['progress']);
+		$course_contextids = self::get_filtered_courseids($customfields, $categories, $tags, $searchdata['searchterm'], 'customfield', $searchdata['current_customfield'], 0, 0, true, $searchdata['progress']);
 
 		if (!sizeof($course_contextids))
 			return [];

@@ -35,6 +35,13 @@ $functions = [
         /*    MOODLE_OFFICIAL_MOBILE_SERVICE,*/
         /*]*/
     ],
+    'block_eledia_telc_coursesearch_get_available_tags' => [
+        'classname' => 'block_eledia_telc_coursesearch\externallib',
+        'methodname' => 'get_available_tags',
+        'description' => 'Return course tags',
+        'type' => 'read',
+		'ajax' => true,
+    ],
     'block_eledia_telc_coursesearch_get_customfield_available_options' => [
         'classname' => 'block_eledia_telc_coursesearch\externallib',
         'methodname' => 'get_customfield_available_options',

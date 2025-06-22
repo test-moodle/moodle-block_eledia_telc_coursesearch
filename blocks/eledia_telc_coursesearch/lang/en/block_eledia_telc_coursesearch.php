@@ -75,6 +75,7 @@ $string['privacy:metadata:overviewpagingpreference'] = 'The Course overview bloc
 $string['removefromfavourites'] = 'Unstar this course';
 $string['searchcourses'] = "Search courses";
 $string['searchcategories'] = "Search categories";
+$string['searchtags'] = "Search tags";
 $string['shortname'] = 'Short name';
 $string['summary'] = 'Summary';
 // TODO: Tidy up.
@@ -103,3 +104,5 @@ $string['zero_request_title'] = 'Request your first course';
 $string['zero_request_intro'] = 'Need help getting started? Check out the <a href="{$a->dochref}" title="{$a->doctitle}" target="{$a->doctarget}">Moodle documentation</a> or take your first steps with our <a href="{$a->quickhref}" title="{$a->quicktitle}" target="{$a->quicktarget}">Quickstart guide</a>.';
 $string['nocatselected'] = 'No categories selected';
 $string['nocatavailable'] = 'No categories available';
+$string['notagsselected'] = 'No tags selected';
+$string['notagsavailable'] = 'No tags available';
