@@ -850,7 +850,7 @@ class externallib extends external_api {
 	}
 
 	public static function select_translation(string $text): string {
-		$idx = current_language() === 'de' ? 0 : 1;
+		$idx = explode('_', current_language())[0] === 'de' ? 0 : 1;
 		$translations =  explode(';', $text);
 		return (isset($translations[$idx]) ? $translations[$idx] : $translations[0]);
 	}
