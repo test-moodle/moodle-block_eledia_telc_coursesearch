@@ -883,8 +883,7 @@ class externallib extends external_api {
         $field = \core_customfield\field_controller::create($searchdata['current_customfield']);
         $isvisible = $field->get_configdata_property('visibility') == \core_course\customfield\course_handler::VISIBLETOALL;
         // Only visible fields to everybody supporting course grouping will be displayed.
-        if (!$field->supports_course_grouping() || !$isvisible) {
-			// throw new \Exception(var_export($field->get_options_array(), true));
+		if ((!$field->supports_course_grouping() || !$isvisible) && !$field = \block_eledia_telc_coursesearch\fieldcontroller_factory::create($field)) {
             return []; // The field shouldn't have been selectable in the global settings, but just skip it now.
         }
         if (!defined('BLOCK_MYOVERVIEW_CUSTOMFIELD_EMPTY')) {
