@@ -335,8 +335,6 @@ class externallib extends external_api {
 
 	public static function get_courseview(array $data) {
 		global $DB;
-		\tool_eledia_scripts\util::debug_out("data\n", 'viewdbg.txt');
-		\tool_eledia_scripts\util::debug_out(var_export($data, true). "\n", 'viewdbg.txt');
 		$courseids = [];
 		[$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
 		$courseids = self::get_filtered_courseids($customfields, $categories, $tags, $searchdata['searchterm'], '', 0, $searchdata['limit'], $searchdata['offset'], false, $searchdata['progress']);
@@ -348,7 +346,6 @@ class externallib extends external_api {
 		WHERE id $insql
 		";
 		$courses = $DB->get_records_sql($sql, $inparams);
-		\tool_eledia_scripts\util::debug_out("courseview end\n", 'viewdbg.txt');
 		// return self::get_courses_rendered($courses, $searchdata['offset']);
 		return self::get_courses_rendered($courses, 0);
 	}
@@ -411,9 +408,12 @@ class externallib extends external_api {
 	// NOTE: Oops. Theoretically. Due to time constraints for development it is four.
 	// INFO: There is no need to send data about which fields are selected because it can be managed stateful by frontend.
 
+	// TODO: Make dynamic multiple JOIN statements.
 	protected static function get_filtered_courseids(array $customfields, array $categories = [], array $tags = [], string $searchterm = '', string $excludetype = 'customfield', string | int $excludevalue = 0, int $limit = 0, int $offset = 0, $contextids = false, $progress = 'all') {
 		global $DB, $USER;
 		self::validate_context(\context_user::instance($USER->id));
+		$current_customfield = $excludetype === 'customfield' ? $excludevalue : false;
+		$customfields = self::filterconvert_multiselect_customfields($customfields, $current_customfield);
 		// Build query for all courses that have the customfield selection minus the one in question.
 		$insqls = '';
 		$customsqls = [];
@@ -425,22 +425,29 @@ class externallib extends external_api {
 					continue;
 			}
 			$cid = (int) $customfield['fieldid'];
-			[$insql, $params] = $DB->get_in_or_equal($customfield['fieldvalues']);
+			if (!isset($customsqls[$cid]))
+				$customsqls[$cid] = [];
+			[$insql, $params] = $DB->get_in_or_equal($customfield['fieldvalues'], SQL_PARAMS_NAMED);
 			$allparams = array_merge($allparams, $params);
-			$query = " ( cd.fieldid = $cid AND cd.value $insql ) ";
+			$query = " cd.value $insql ";
+			// $query = " ( cd.fieldid = $cid AND cd.value $insql ) ";
 			// $insqls[] = $query;
 			// $insqls .= $query;
-			$customsqls[] = $query;
+			$customsqls[$cid][] = $query;
+		}
+		foreach ($customsqls as $k => $v) {
+			if (sizeof($v)) 
+				$customsqls[$k] = " ( cd.fieldid = $k AND ( " . implode(' OR ', $v) . ' )) ';
 		}
 		if (sizeof($customsqls)) 
-			$insqls = 'AND ( ' . implode(' OR ', $customsqls) . ' ) ';
+			$insqls = 'AND ( ' . implode(' AND ', $customsqls) . ' ) ';
 
 		// Builder for category filter.
 		if ($excludetype === 'categories')
 			$categories = [];
 
 		if (sizeof($categories)) {
-			[$insql, $params] = $DB->get_in_or_equal($categories);
+			[$insql, $params] = $DB->get_in_or_equal($categories, SQL_PARAMS_NAMED);
 			$allparams = array_merge($allparams, $params);
 			$query = " AND c.category $insql ";
 			$insqls .= $query;
@@ -453,7 +460,7 @@ class externallib extends external_api {
 
 		if (sizeof($tags)) {
 			$tagsql = " LEFT JOIN {tag_instance} ti ON ti.itemtype = 'course' AND ti.component = 'core' AND ti.itemid = c.id ";
-			[$insql, $params] = $DB->get_in_or_equal($tags);
+			[$insql, $params] = $DB->get_in_or_equal($tags, SQL_PARAMS_NAMED);
 			$allparams = array_merge($allparams, $params);
 			$query = " AND (ti.itemtype = 'course' AND ti.component = 'core' AND ti.itemid = c.id AND ti.tagid $insql ) ";
 			$insqls .= $query;
@@ -508,10 +515,10 @@ class externallib extends external_api {
 		      $insqls
         ";
 		if (!empty($searchterm)) {
-			$allparams[] = "%$searchterm%";
-			$allparams[] = "%$searchterm%";
-			$fullname_like = $DB->sql_like('c.fullname', '?', false);
-			$shortname_like = $DB->sql_like('c.shortname', '?', false);
+			$allparams['cfullname'] = "%$searchterm%";
+			$allparams['cshortname'] = "%$searchterm%";
+			$fullname_like = $DB->sql_like('c.fullname', ':cfullname', false);
+			$shortname_like = $DB->sql_like('c.shortname', ':cshortname', false);
 			// $sql .= " AND (c.fullname ILIKE ? OR c.shortname ILIKE ?) ";
 			$sql .= " AND ($fullname_like OR $shortname_like) ";
 		}
@@ -533,12 +540,13 @@ class externallib extends external_api {
 
 		if ($limit) {
 			$sql .= "
-			LIMIT ?
-			OFFSET ?
+			LIMIT :limit
+			OFFSET :offset
 			";	
-			$allparams[] = $limit;
-			$allparams[] = $offset;
+			$allparams['limit'] = $limit;
+			$allparams['offset'] = $offset;
 		}
+		\tool_eledia_scripts\util::debug_out($sql . "\n\n" . var_export($allparams, true), 'sdbg.txt');
 
 		$ids_unfiltered = $DB->get_records_sql($sql, $allparams);
 		$ids_unfiltered = array_keys($ids_unfiltered);
@@ -698,9 +706,6 @@ class externallib extends external_api {
 
 
 		[$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
-		\tool_eledia_scripts\util::debug_out( "Category query:\n", 'catdebg.txt');
-		\tool_eledia_scripts\util::debug_out( var_export($searchdata, true) . "\n", 'catdebg.txt');
-		\tool_eledia_scripts\util::debug_out( "foreach:\n", 'catdebg.txt');
 		if (sizeof($searchdata) && sizeof($courseids = self::get_filtered_courseids($customfields, [], $tags, $searchdata['searchterm'], 'categories', 0, 0, 0, false, $searchdata['progress']))) {
 			[$insql, $params] = $DB->get_in_or_equal($courseids);
 			$whereclause = " WHERE c.id $insql ";
@@ -714,8 +719,6 @@ class externallib extends external_api {
 			$whereclause .= " AND cat.name ILIKE ? ";
 		}
 
-		\tool_eledia_scripts\util::debug_out( "Category course IDs:\n", 'catdebg.txt');
-		\tool_eledia_scripts\util::debug_out( var_export($courseids, true) . "\n", 'catdebg.txt');
 		$sql = "SELECT DISTINCT cat.id FROM {course_categories} cat
 			LEFT JOIN {course} c
 			ON c.category = cat.id
@@ -729,8 +732,6 @@ class externallib extends external_api {
 		If (!sizeof($catids))
 			return [];
 
-		\tool_eledia_scripts\util::debug_out( "Category IDs:\n", 'catdebg.txt');
-		\tool_eledia_scripts\util::debug_out( var_export($catids, true) . "\n", 'catdebg.txt');
 		// $categories = \core_course_external::get_categories(['ids' => $catids, 'limit' => 6]);
 		$parameters = [
 			[ 'key' => 'ids', 'value' => implode(',', $catids) ],
@@ -851,6 +852,8 @@ class externallib extends external_api {
 
 		if (!in_array($searchdata['current_customfield'], $customfield_fieldids))
 			return [];
+
+
 		$course_contextids = self::get_filtered_courseids($customfields, $categories, $tags, $searchdata['searchterm'], 'customfield', $searchdata['current_customfield'], 0, 0, true, $searchdata['progress']);
 
 		if (!sizeof($course_contextids))
@@ -908,14 +911,69 @@ class externallib extends external_api {
         );
 	}
 
-	public static function get_multiselect_customfields() {
+	public static function get_multiselect_customfields(int | false $excludeid = false) {
 		global $DB;
-		$fields = $DB->get_records('customfield_field', ['type' => 'multiselect'], '', 'id, shortname, name');
-		return $fields ? (array) $fields : false;
+		$fieldids = [];
+		$fields = $DB->get_records('customfield_field', ['type' => 'multiselect'], '', 'id');
+		foreach ($fields as $cf) {
+			if ($cf->id !== $excludeid)
+				$fieldids[] = $cf->id;
+		}
+		return $fieldids;
 	}
 
-	public static function get_multiselect_customfield_values() {
-		// TODO: Need to get all values. Need to call this function for all fields.k  
+	// Oops, forgot, this isn't JS.
+	public static function array_find(array $array, callable $callback) {
+		foreach ($array as $key => $value) {
+			if ($callback($value)) {
+				return $key;
+			}
+		}
+		return false;
+	}
+	
+	public static function filterconvert_multiselect_customfields(array $customfields, int | bool $excludeid): array {
+		global $DB;
+		if ($excludeid && $DB->record_exists('customfield_field', ['id' => $excludeid, 'type' => 'multiselect'])) {
+			$customfields = array_values(array_filter($customfields, function($item) use ($excludeid) {
+				return $item['fieldid'] !== $excludeid;
+			}));
+		} else {
+			$excludeid = false;
+		}
+
+		foreach (self::get_multiselect_customfields($excludeid) as $fid) {
+			$fid = (int) $fid;
+			$params = [];
+			
+			$idx = self::array_find($customfields, function($item) use ($fid) {
+				return $item['fieldid'] === $fid;
+			});
+			if ($idx === false || !sizeof($customfields[$idx]['fieldvalues']))
+				continue;
+
+			$params[] = $fid;
+			$f = reset(array_splice($customfields, $idx, 1));
+			$csqls = [];
+			foreach ($f['fieldvalues'] as $v) {
+				$csqls[] = $DB->sql_like('value', '?');
+				$params[] = "%$v%";
+			}
+			$where = " WHERE fieldid = ? AND ( " . implode(" OR ", $csqls) . " ) ";
+			$sql = "
+				SELECT DISTINCT value
+				FROM {customfield_data}
+				$where
+				";
+			$fieldvalues = [];
+			foreach ($DB->get_records_sql($sql, $params) as $r) {
+				if (sizeof(array_intersect(explode(',', $r->value), $f['fieldvalues']))) {
+					$fieldvalues[] = $r->value;
+				}
+			}
+			$customfields[] = [ 'fieldid' => $fid, 'fieldvalues' => $fieldvalues ];
+		}
+		return $customfields;
 	}
 
 	protected static function get_customfield_value_options(int | string $fieldid, array $courseids) {
