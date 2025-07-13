@@ -82,3 +82,7 @@ input::after {
 .dropdown-description div p {
 	margin-bottom: .5rem;
 }
+
+div[data-region="paging-control-limit-container"] {
+    display: none !important;
+}
