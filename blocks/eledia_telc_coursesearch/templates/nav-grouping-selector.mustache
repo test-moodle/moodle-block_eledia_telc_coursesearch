@@ -39,68 +39,65 @@
     }
 }}
 {{#displaygroupingselector}}
-<div class="dropdown mb-1 me-1">
-    <button id="groupingdropdown" type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="{{#str}} aria:groupingdropdown, block_eledia_telc_coursesearch {{/str}}">
-        <span data-active-item-text>
-            {{#all}}{{#str}} all, block_eledia_telc_coursesearch {{/str}}{{/all}}
-            {{#inprogress}}{{#str}} inprogress, block_eledia_telc_coursesearch {{/str}}{{/inprogress}}
-            {{#future}}{{#str}} future, block_eledia_telc_coursesearch {{/str}}{{/future}}
-            {{#past}}{{#str}} past, block_eledia_telc_coursesearch {{/str}}{{/past}}
-            {{selectedcustomfield}}
-        </span>
-    </button>
-    <ul class="dropdown-menu" role="menu" data-show-active-item data-skip-active-class="true" data-active-item-text aria-labelledby="groupingdropdown">
-        {{#displaygroupingall}}
-        <li class="dropdown-divider" role="presentation">
-            <span class="filler">&nbsp;</span>
-        </li>
-        <li>
-            <a class="dropdown-item" href="#" data-filter="grouping" data-value="all" data-pref="all" aria-label="{{#str}} aria:allcourses, block_eledia_telc_coursesearch {{/str}}" aria-controls="courses-view-{{uniqid}}" role="menuitem" {{#all}}aria-current="true"{{/all}}>
-                {{#str}} all, block_eledia_telc_coursesearch {{/str}}
-            </a>
-        </li>
-        {{/displaygroupingall}}
-        {{#displaygroupinginprogress}}
-        <li class="dropdown-divider" role="presentation">
-            <span class="filler">&nbsp;</span>
-        </li>
-        <li>
-            <a class="dropdown-item" href="#" data-filter="grouping" data-value="inprogress" data-pref="inprogress" aria-label="{{#str}} aria:inprogress, block_eledia_telc_coursesearch {{/str}}" aria-controls="courses-view-{{uniqid}}" role="menuitem" {{#inprogress}}aria-current="true"{{/inprogress}}>
-                {{#str}} inprogress, block_eledia_telc_coursesearch {{/str}}
-            </a>
-        </li>
-        {{/displaygroupinginprogress}}
-        {{#displaygroupingfuture}}
-            {{^displaygroupinginprogress}}
+    <div class="col-md-3">
+    <div class="dropdown mb-3">
+        <button id="groupingdropdown" type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="{{#str}} aria:groupingdropdown, block_eledia_telc_coursesearch {{/str}}">
+            <span data-active-item-text>
+                {{#all}}{{#str}} all, block_eledia_telc_coursesearch {{/str}}{{/all}}
+                {{#inprogress}}{{#str}} inprogress, block_eledia_telc_coursesearch {{/str}}{{/inprogress}}
+                {{#future}}{{#str}} future, block_eledia_telc_coursesearch {{/str}}{{/future}}
+                {{#past}}{{#str}} past, block_eledia_telc_coursesearch {{/str}}{{/past}}
+                {{selectedcustomfield}}
+            </span>
+        </button>
+        <ul class="dropdown-menu" role="menu" data-show-active-item data-skip-active-class="true" data-active-item-text aria-labelledby="groupingdropdown">
+            {{#displaygroupingall}}
             <li class="dropdown-divider" role="presentation">
                 <span class="filler">&nbsp;</span>
             </li>
+            <li>
+                <a class="dropdown-item" href="#" data-filter="grouping" data-value="all" data-pref="all" aria-label="{{#str}} aria:allcourses, block_eledia_telc_coursesearch {{/str}}" aria-controls="courses-view-{{uniqid}}" role="menuitem" {{#all}}aria-current="true"{{/all}}>
+                    {{#str}} all, block_eledia_telc_coursesearch {{/str}}
+                </a>
+            </li>
+            {{/displaygroupingall}}
+            {{#displaygroupinginprogress}}
+            <li class="dropdown-divider" role="presentation">
+                <span class="filler">&nbsp;</span>
+            </li>
+            <li>
+                <a class="dropdown-item" href="#" data-filter="grouping" data-value="inprogress" data-pref="inprogress" aria-label="{{#str}} aria:inprogress, block_eledia_telc_coursesearch {{/str}}" aria-controls="courses-view-{{uniqid}}" role="menuitem" {{#inprogress}}aria-current="true"{{/inprogress}}>
+                    {{#str}} inprogress, block_eledia_telc_coursesearch {{/str}}
+                </a>
+            </li>
             {{/displaygroupinginprogress}}
-        <li>
-            <a class="dropdown-item" href="#" data-filter="grouping" data-value="future" data-pref="future" aria-label="{{#str}} aria:future, block_eledia_telc_coursesearch {{/str}}" aria-controls="courses-view-{{uniqid}}" role="menuitem" {{#future}}aria-current="true"{{/future}}>
-                {{#str}} future, block_eledia_telc_coursesearch {{/str}}
-            </a>
-        </li>
-        {{/displaygroupingfuture}}
-        {{#displaygroupingpast}}
-            {{^displaygroupinginprogress}}
-                {{^displaygroupingfuture}}
+            {{#displaygroupingfuture}}
+                {{^displaygroupinginprogress}}
                 <li class="dropdown-divider" role="presentation">
                     <span class="filler">&nbsp;</span>
                 </li>
-                {{/displaygroupingfuture}}
-            {{/displaygroupinginprogress}}
-        <li>
-            <a class="dropdown-item" href="#" data-filter="grouping" data-value="past" data-pref="past" aria-label="{{#str}} aria:past, block_eledia_telc_coursesearch {{/str}}" aria-controls="courses-view-{{uniqid}}" role="menuitem" {{#past}}aria-current="true"{{/past}}>
-                {{#str}} past, block_eledia_telc_coursesearch {{/str}}
-            </a>
-        </li>
-        {{/displaygroupingpast}}
-    </ul>
-</div>
-{{/displaygroupingselector}}
-{{^displaygroupingselector}}
-<div class="mb-1 me-auto">
-    <span class="filler">&nbsp;</span>
-</div>
-{{/displaygroupingselector}}
+                {{/displaygroupinginprogress}}
+            <li>
+                <a class="dropdown-item" href="#" data-filter="grouping" data-value="future" data-pref="future" aria-label="{{#str}} aria:future, block_eledia_telc_coursesearch {{/str}}" aria-controls="courses-view-{{uniqid}}" role="menuitem" {{#future}}aria-current="true"{{/future}}>
+                    {{#str}} future, block_eledia_telc_coursesearch {{/str}}
+                </a>
+            </li>
+            {{/displaygroupingfuture}}
+            {{#displaygroupingpast}}
+                {{^displaygroupinginprogress}}
+                    {{^displaygroupingfuture}}
+                    <li class="dropdown-divider" role="presentation">
+                        <span class="filler">&nbsp;</span>
+                    </li>
+                    {{/displaygroupingfuture}}
+                {{/displaygroupinginprogress}}
+            <li>
+                <a class="dropdown-item" href="#" data-filter="grouping" data-value="past" data-pref="past" aria-label="{{#str}} aria:past, block_eledia_telc_coursesearch {{/str}}" aria-controls="courses-view-{{uniqid}}" role="menuitem" {{#past}}aria-current="true"{{/past}}>
+                    {{#str}} past, block_eledia_telc_coursesearch {{/str}}
+                </a>
+            </li>
+            {{/displaygroupingpast}}
+        </ul>
+    </div>
+    </div>
+    {{/displaygroupingselector}}

@@ -27,14 +27,15 @@
     <hr class="mt-0"/>
 
     <div role="search" data-region="filter" class="d-flex align-items-center my-2" aria-label="{{#str}} aria:controls, block_eledia_telc_coursesearch {{/str}}">
-        <div class="row g-0">
+        <div class="row g-1">
+            <div class="col-md-9">
             {{> block_eledia_telc_coursesearch/nav-search-widget }}
-
+            </div>
             {{> block_eledia_telc_coursesearch/nav-grouping-selector }}
 
-            {{> block_eledia_telc_coursesearch/nav-category-selector }}
-
             {{> block_eledia_telc_coursesearch/nav-customfield-selector }}
+
+            {{> block_eledia_telc_coursesearch/nav-category-selector }}
 
             {{> block_eledia_telc_coursesearch/nav-tags-selector }}
 
