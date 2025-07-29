@@ -1,0 +1,40 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template block_eledia_telc_coursesearch/nav-customfield-selector
+
+    This template renders grouping dropdown.
+
+    Example context (json):
+    {
+        "id": 1,
+        "name": "Name of custom field",
+        "count": false,
+        "customfieldselected": [],
+        "customfieldselectable": [],
+    }
+}}
+{{#customfields_collapse}}
+<div class="dropdown customfieldsearch mb-3 col-md-3">
+    <div class="mb-1 me-1 flex-grow-1 catprevent">
+        {{> block_eledia_telc_coursesearch/search-input-auto-customfields }}
+    </div>
+    <div class="customfield-dropdown-container-{{id}}" data-description="{{description}}">
+        {{ > block_eledia_telc_coursesearch/nav-category-dropdown }}
+    </div>
+</div>
+{{/customfields_collapse}}

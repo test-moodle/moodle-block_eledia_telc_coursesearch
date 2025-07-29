@@ -35,6 +35,12 @@
 
             {{> block_eledia_telc_coursesearch/nav-customfield-selector }}
 
+            {{! Expansion start }}
+            {{#customfields_collapse}}
+                <div class="customfields-collapse">
+            {{/customfields_collapse}}
+            {{> block_eledia_telc_coursesearch/nav-customfield-selector-collapse }}
+
             {{> block_eledia_telc_coursesearch/nav-category-selector }}
 
             {{> block_eledia_telc_coursesearch/nav-tags-selector }}
@@ -42,6 +48,10 @@
             {{!> block_eledia_telc_coursesearch/nav-sort-selector }}
 
 			{{> block_eledia_telc_coursesearch/nav-display-selector }}
+            {{#customfields_collapse}}
+                </div>
+            {{/customfields_collapse}}
+            {{! Expansion end }}
         </div>
     </div>
 
