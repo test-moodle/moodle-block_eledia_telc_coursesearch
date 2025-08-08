@@ -6,7 +6,7 @@ Place the plugin folder (`eledia_telc_coursesearch/`) into the moodle `blocks/` 
 Because the plugin is a *block*, it only is recommended to display it on the dashboard.  
 If you need the block in other places (start page for example), your theme must support this.  
 To display the plugin to all users on the dashboard, 
-- go to *Site Administration* ** &rarr; ** *Appearance* ** &rarr; ** *Default Dashboard page*  
+- go to *Site Administration* **&rarr;** *Appearance* **&rarr;** *Default Dashboard page*  
 - Turn edit mode on
 - Click *Add a block*
 - Add the plugin
@@ -15,7 +15,7 @@ To display the plugin to all users on the dashboard,
 Now the course search is available to all users.
 ### Add custom fields
 The plugin only shows custom fields that are visible to everyone.  
-- go to *Site Administration* ** &rarr; ** *Courses*
+- go to *Site Administration* **&rarr;** *Courses*
 - in the  *Default settings* section, go to *Course custom fields*
 - if there is no category, click *Add a new category*
 - in the *General* section, click *Add a new custom field* and choose a field type
