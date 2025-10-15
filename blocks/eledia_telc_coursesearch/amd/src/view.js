@@ -1113,14 +1113,18 @@ const initializePagedContent = (root, promiseFunction, inputValue = null, params
  * @param {string} dropdownContainer The dropdown container element.
  * @param {string} dropdown The dropdown element for the search results.
  * @param {function} promiseFunction How do we fetch the categories and what do we do with them?
+ * @param {function} dropdownHelper
  * @param {object} page The page object.
  * @param {object} selectedCategories
  */
 const initializeCategorySearchContent = (dropdownContainer,
     dropdown,
     promiseFunction,
+    dropdownHelper,
     page,
     selectedCategories) => {// eslint-disable-line
+    dropdownContainer = dropdownHelper('categories', dropdownContainer);
+    dropdown = dropdownHelper('categories', dropdown);
     const categories = promiseFunction(dropdownContainer,
         dropdown,
         page,
@@ -1134,14 +1138,18 @@ const initializeCategorySearchContent = (dropdownContainer,
  * @param {string} dropdownContainer The dropdown container element.
  * @param {string} dropdown The dropdown element for the search results.
  * @param {function} promiseFunction How do we fetch the categories and what do we do with them?
+ * @param {function} dropdownHelper
  * @param {object} page The page object.
  * @param {object} selectedTags
  */
 const initializeTagsSearchContent = (dropdownContainer,
     dropdown,
     promiseFunction,
+    dropdownHelper,
     page,
     selectedTags) => {// eslint-disable-line
+    dropdownContainer = dropdownHelper('tags', dropdownContainer);
+    dropdown = dropdownHelper('tags', dropdown);
     const categories = promiseFunction(dropdownContainer,
         dropdown,
         page,
@@ -1217,12 +1225,12 @@ const registerEventListeners = (root, page) => {
 
     // Searching functionality event handlers.
     const input = page.querySelector(SELECTORS.region.searchInput);
-    const clearIcon = page.querySelector(SELECTORS.region.clearIcon);
-    const catinput = page.querySelector(SELECTORS.cat.input);
-    const tagsinput = page.querySelector(SELECTORS.tags.input);
+    const clearIcons = page.querySelectorAll(SELECTORS.region.clearIcon);
+    const catinputs = page.querySelectorAll(SELECTORS.cat.input);
+    const tagsinputs = page.querySelectorAll(SELECTORS.tags.input);
     const customInputs = page.querySelectorAll(SELECTORS.customfields.input);
-    const clearCatIcon = page.querySelector(SELECTORS.cat.clearIcon);
-    const clearTagsIcon = page.querySelector(SELECTORS.tags.clearIcon);
+    const clearCatIcons = page.querySelectorAll(SELECTORS.cat.clearIcon);
+    const clearTagsIcons = page.querySelectorAll(SELECTORS.tags.clearIcon);
     const clearCustomfieldIcons = page.querySelectorAll(SELECTORS.customfields.clearIcon);
     const customClass = SELECTORS.customfields.searchfield;
     const catSelectable = SELECTORS.cat.selectableItem;
@@ -1233,39 +1241,55 @@ const registerEventListeners = (root, page) => {
     const customfieldSelected = SELECTORS.customfields.selectedItem;
     const groupingFilter = page.querySelectorAll(SELECTORS.FILTER_GROUPING);
 
-    clearIcon.addEventListener('click', () => {
-        input.value = '';
-        searchTerm = '';
-        input.focus();
-        clearSearch(clearIcon, root);
+    clearIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+            input.value = '';
+            searchTerm = '';
+            input.focus();
+            clearIcons.forEach(ci => {
+                clearSearch(ci, root);
+            });
+        });
     });
 
-    clearCatIcon.addEventListener('click', () => {
-        window.console.log('CLICKED clearCatIcon');
-        catSearchTerm = '';
-        catinput.value = '';
-        catinput.focus();
-        clearCatSearch(clearCatIcon);
-        initializeCategorySearchContent(
-            SELECTORS.cat.dropdownDiv,
-            SELECTORS.cat.dropdown,
-            catSearchFunctionality(),
-            page,
-            selectedCategories);
+    clearCatIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+            window.console.log('CLICKED clearCatIcon');
+            catSearchTerm = '';
+            catinputs.forEach(input => {
+                input.value = '';
+            });
+            catinput().focus();
+            clearCatIcons.forEach(i => {
+                clearCatSearch(i);
+            });
+            initializeCategorySearchContent(
+                SELECTORS.cat.dropdownDiv,
+                SELECTORS.cat.dropdown,
+                catSearchFunctionality(),
+                page,
+                selectedCategories);
+        });
     });
 
-    clearTagsIcon.addEventListener('click', () => {
-        window.console.log('CLICKED clearCatIcon');
-        tagsSearchTerm = '';
-        tagsinput.value = '';
-        tagsinput.focus();
-        clearCatSearch(clearTagsIcon);
-        initializeTagsSearchContent(
-            SELECTORS.tags.dropdownDiv,
-            SELECTORS.tags.dropdown,
-            tagsSearchFunctionality(),
-            page,
-            selectedTags);
+    clearTagsIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+            window.console.log('CLICKED clearCatIcon');
+            tagsSearchTerm = '';
+            tagsinputs.forEach(input => {
+                input.value = '';
+            });
+            tagsinput().focus();
+            clearTagsIcons.forEach(i => {
+                clearCatSearch(i);
+            });
+            initializeTagsSearchContent(
+                SELECTORS.tags.dropdownDiv,
+                SELECTORS.tags.dropdown,
+                tagsSearchFunctionality(),
+                page,
+                selectedTags);
+        });
     });
 
     clearCustomfieldIcons.forEach(icon => {
@@ -1288,9 +1312,13 @@ const registerEventListeners = (root, page) => {
     input.addEventListener('input', debounce(() => {
         if (input.value === '') {
             searchTerm = '';
-            clearSearch(clearIcon, root);
+            clearIcons.forEach(icon => {
+                clearSearch(icon, root);
+            });
         } else {
-            activeSearch(clearIcon);
+            clearIcons.forEach(icon => {
+                activeSearch(icon);
+            });
             searchTerm = input.value.trim();
             initializePagedContent(root, searchFunctionalityCurry(), input.value.trim(), getParams());
         }
@@ -1342,70 +1370,121 @@ const registerEventListeners = (root, page) => {
     });
 
     // Initialize category search dropdown on first click.
-    catinput.addEventListener('click', () => {
-        initializeCategorySearchContent(
-            SELECTORS.cat.dropdownDiv,
-            SELECTORS.cat.dropdown,
-            catSearchFunctionality(),
-            page,
-            selectedCategories);
+    catinputs.forEach(ci => {
+        ci.addEventListener('click', () => {
+            initializeCategorySearchContent(
+                SELECTORS.cat.dropdownDiv,
+                SELECTORS.cat.dropdown,
+                catSearchFunctionality(),
+                dropdownHelper,
+                page,
+                selectedCategories);
+        });
     });
 
-    catinput.addEventListener('input', debounce(() => {
-        if (catinput.value === '') {
-            clearCatSearch(clearCatIcon);
-            catSearchTerm = '';
-            initializeCategorySearchContent(
-                SELECTORS.cat.dropdownDiv,
-                SELECTORS.cat.dropdown,
-                catSearchFunctionality(),
-                page,
-                selectedCategories);
-        } else {
-            window.console.log('catinput.value');
-            window.console.log(catinput.value);
-            activeSearch(clearCatIcon);
-            catSearchTerm = catinput.value.trim();
-            initializeCategorySearchContent(
-                SELECTORS.cat.dropdownDiv,
-                SELECTORS.cat.dropdown,
-                catSearchFunctionality(),
-                page,
-                selectedCategories);
-        }
-    }, 1000));
+    catinputs.forEach(catinput => {
+        catinput.addEventListener('input', debounce(() => {
+            if (catinput.value === '') {
+                clearCatIcons.forEach(icon => {
+                    clearCatSearch(icon);
+                });
+                copyCatValues('');
+                catSearchTerm = '';
+                initializeCategorySearchContent(
+                    SELECTORS.cat.dropdownDiv,
+                    SELECTORS.cat.dropdown,
+                    catSearchFunctionality(),
+                    dropdownHelper,
+                    page,
+                    selectedCategories);
+            } else {
+                window.console.log('catinput.value');
+                window.console.log(catinput.value);
+                clearCatIcons.forEach(icon => {
+                    activeSearch(icon);
+                });
+                catSearchTerm = catinput.value.trim();
+                copyCatValues(catinput.value);
+                initializeCategorySearchContent(
+                    SELECTORS.cat.dropdownDiv,
+                    SELECTORS.cat.dropdown,
+                    catSearchFunctionality(),
+                    dropdownHelper,
+                    page,
+                    selectedCategories);
+            }
+        }, 1000));
+    });
+
+    /**
+     * Copies the given value to all category input fields.
+     *
+     * @param {string} value The value to set for all category input fields.
+     */
+    function copyCatValues(value) {
+        catinputs.forEach(ci => {
+            ci.value = value;
+        });
+    }
 
     // Initialize tags search dropdown on first click.
-    tagsinput.addEventListener('click', () => {
-        initializeTagsSearchContent(
-            SELECTORS.tags.dropdownDiv,
-            SELECTORS.tags.dropdown,
-            tagsSearchFunctionality(),
-            page,
-            selectedTags);
+    tagsinputs.forEach(tagsinput => {
+        tagsinput.addEventListener('click', () => {
+            initializeTagsSearchContent(
+                SELECTORS.tags.dropdownDiv,
+                SELECTORS.tags.dropdown,
+                tagsSearchFunctionality(),
+                dropdownHelper,
+                page,
+                selectedTags);
+        });
     });
 
-    tagsinput.addEventListener('input', debounce(() => {
-        if (tagsinput.value === '') {
-            clearCatSearch(clearTagsIcon);
-            tagsSearchTerm = '';
-            initializeTagsSearchContent(
-                SELECTORS.tags.dropdownDiv,
-                SELECTORS.tags.dropdown,
-                tagsSearchFunctionality(),
-                page,
-                selectedTags);
-        } else {
-            activeSearch(clearTagsIcon);
-            tagsSearchTerm = tagsinput.value.trim();
-            initializeTagsSearchContent(
-                SELECTORS.tags.dropdownDiv,
-                SELECTORS.tags.dropdown,
-                tagsSearchFunctionality(),
-                page,
-                selectedTags);
-        }
-    }, 1000));
+    tagsinputs.forEach(tagsinput => {
+        tagsinput.addEventListener('input', debounce(() => {
+            if (tagsinput.value === '') {
+                clearTagsIcons.forEach(icon => {
+                    clearCatSearch(icon);
+                });
+                tagsSearchTerm = '';
+                copyTagsValues('');
+                initializeTagsSearchContent(
+                    SELECTORS.tags.dropdownDiv,
+                    SELECTORS.tags.dropdown,
+                    tagsSearchFunctionality(),
+                    dropdownHelper,
+                    page,
+                    selectedTags);
+            } else {
+                clearTagsIcons.forEach(icon => {
+                    activeSearch(icon);
+                });
+                tagsSearchTerm = tagsinput.value.trim();
+                copyTagsValues(tagsinput.value);
+                initializeTagsSearchContent(
+                    SELECTORS.tags.dropdownDiv,
+                    SELECTORS.tags.dropdown,
+                    tagsSearchFunctionality(),
+                    dropdownHelper,
+                    page,
+                    selectedTags);
+            }
+        }, 1000));
+    });
+
+
+
+    /**
+     * Copies the given value to all tags input fields.
+     *
+     * @param {string} value The value to set for all tags input fields.
+     */
+    function copyTagsValues(value) {
+        tagsinputs.forEach(ti => {
+            ti.value = value;
+        });
+    }
+
 
     document.body.addEventListener('click', manageCategorydropdownCollapse);
     document.body.addEventListener('click', manageTagsdropdownCollapse);
@@ -1420,7 +1499,7 @@ const registerEventListeners = (root, page) => {
                 catSelectable,
                 SELECTORS.cat.dropdownDiv,
                 SELECTORS.cat.dropdown,
-                catSearchFunctionality(),
+                dropdownHelper,
                 page);
             // TODO: Initialize search on *every* change.
             initializePagedContent(root, searchFunctionalityCurry(), input.value.trim(), getParams());
@@ -1436,7 +1515,7 @@ const registerEventListeners = (root, page) => {
                 tagsSelectable,
                 SELECTORS.tags.dropdownDiv,
                 SELECTORS.tags.dropdown,
-                tagsSearchFunctionality(),
+                dropdownHelper,
                 page);
             // TODO: Initialize search on *every* change.
             initializePagedContent(root, searchFunctionalityCurry(), input.value.trim(), getParams());
@@ -1488,6 +1567,46 @@ const registerEventListeners = (root, page) => {
         });
     });
 
+};
+/*
+ * @param {string} dataSource
+ * @param {string} selector
+ */
+const dropdownHelper = (dataSource, selector) => {
+
+    let data;
+    switch (dataSource) {
+        case 'categories':
+            data = selectedCategories;
+            break;
+        case 'tags':
+            data = selectedTags;
+            break;
+        default:
+            throw new Error('Invalid data source "' + dataSource + '" for dropdownHelper');
+    }
+    if (data.length === 0) {
+        return '[data-region="filter"][role="search"] > .row > .customfields-collapse > .collapse-filter ' + selector;
+    }
+    return '[data-region="filter"][role="search"] > .row > .collapse-filter ' + selector;
+};
+
+/**
+ * Eventlistener helper to return the correct catinput element.
+ *
+ */
+export const catinput = () => {
+    const catinputs = document.querySelectorAll(SELECTORS.cat.input);
+    return selectedCategories.length === 0 ? catinputs[1] : catinputs[0];
+};
+
+/**
+ * Eventlistener helper to return the correct tagsinput element.
+ *
+ */
+export const tagsinput = () => {
+    const tagsinputs = document.querySelectorAll(SELECTORS.tags.input);
+    return selectedCategories.length === 0 ? tagsinputs[1] : tagsinputs[0];
 };
 
 /**
@@ -1559,12 +1678,45 @@ const activeSearch = (clearIcon) => {
  */
 const manageCategorydropdownCollapse = (e) => {
     const page = document.querySelector(SELECTORS.region.selectBlock);
-    const catDropdown = page.querySelector(SELECTORS.cat.dropdown);
-    if (!e.target.classList.contains('catprevent') && !e.target.classList.contains('fa-xmark')) {
-        catDropdown.style.display = 'none';
-    } else if (e.target.classList.contains('catprevent') && !e.target.classList.contains('fa-xmark')) {
-        catDropdown.style.display = 'block';
+
+    const catDropdowns = page.querySelectorAll(SELECTORS.cat.dropdown);
+    const catInputs = page.querySelectorAll(SELECTORS.cat.input);
+
+    for (const dropdown of catDropdowns) {
+        if (dropdown.contains(e.target)) {
+            return;
+        }
     }
+    for (const input of catInputs) {
+        if (input.contains(e.target)) {
+            return;
+        }
+    }
+
+    if (e.target.classList.contains('catprevent') && !e.target.classList.contains('fa-xmark')) {
+        catDropdowns.forEach(dropdown => {
+            dropdown.style.display = 'block';
+        });
+        return;
+    }
+
+    catDropdowns.forEach(dropdown => {
+        dropdown.style.display = 'none';
+    });
+    const catSelectElements = document.querySelectorAll('.collapse-filter-category');
+    if (selectedCategories.length === 0) {
+        catSelectElements.forEach(e => {
+            if (!e.classList.contains('collapse-enabled')) {
+                e.classList.add('collapse-enabled');
+            }
+        });
+        return;
+    }
+    catSelectElements.forEach(e => {
+        if (e.classList.contains('collapse-enabled')) {
+            e.classList.remove('collapse-enabled');
+        }
+    });
 
 };
 
@@ -1575,13 +1727,49 @@ const manageCategorydropdownCollapse = (e) => {
  */
 const manageTagsdropdownCollapse = (e) => {
     const page = document.querySelector(SELECTORS.region.selectBlock);
-    const tagsDropdown = page.querySelector(SELECTORS.tags.dropdown);
-    if (!e.target.classList.contains('tagsprevent') && !e.target.classList.contains('fa-xmark')) {
-        tagsDropdown.style.display = 'none';
-    } else if (e.target.classList.contains('tagsprevent') && !e.target.classList.contains('fa-xmark')) {
-        tagsDropdown.style.display = 'block';
+    const tagsDropdowns = page.querySelectorAll(SELECTORS.tags.dropdown);
+    const tagsInputs = page.querySelectorAll(SELECTORS.tags.input);
+    // if (!e.target.classList.contains('tagsprevent') && !e.target.classList.contains('fa-xmark')) {
+    //     tagsDropdown.style.display = 'none';
+    // } else if (e.target.classList.contains('tagsprevent') && !e.target.classList.contains('fa-xmark')) {
+    //     tagsDropdown.style.display = 'block';
+    // }
+
+    for (const dropdown of tagsDropdowns) {
+        if (dropdown.contains(e.target)) {
+            return;
+        }
+    }
+    for (const input of tagsInputs) {
+        if (input.contains(e.target)) {
+            return;
+        }
     }
 
+    if (e.target.classList.contains('tagsprevent') && !e.target.classList.contains('fa-xmark')) {
+        tagsDropdowns.forEach(dropdown => {
+            dropdown.style.display = 'block';
+        });
+        return;
+    }
+
+    tagsDropdowns.forEach(dropdown => {
+        dropdown.style.display = 'none';
+    });
+    const tagsSelectElements = document.querySelectorAll('.collapse-filter-tags');
+    if (selectedTags.length === 0) {
+        tagsSelectElements.forEach(e => {
+            if (!e.classList.contains('collapse-enabled')) {
+                e.classList.add('collapse-enabled');
+            }
+        });
+        return;
+    }
+    tagsSelectElements.forEach(e => {
+        if (e.classList.contains('collapse-enabled')) {
+            e.classList.remove('collapse-enabled');
+        }
+    });
 };
 
 /**
@@ -1593,12 +1781,14 @@ const manageTagsdropdownCollapse = (e) => {
  * @param {string} selectable
  * @param {string} dropdownDiv
  * @param {string} dropdown
- * @param {object} promiseFunction
+ * @param {object} dropdownHelper
  * @param {object} page
  **/
-const manageCategorydropdownItems = (e, selected, selectable, dropdownDiv, dropdown, promiseFunction, page) => {// eslint-disable-line
+const manageCategorydropdownItems = (e, selected, selectable, dropdownDiv, dropdown, dropdownHelper, page) => {// eslint-disable-line
     const template = 'block_eledia_telc_coursesearch/nav-category-dropdown';
     const categoryId = e.target.dataset.catId;
+    dropdownDiv = dropdownHelper('categories', dropdownDiv);
+    dropdown = dropdownHelper('categories', dropdown);
     if (e.target.classList.contains(selectable)) {
         const categoryIndex = selectableCategories.findIndex(value => value.id == categoryId);
         selectedCategories.push(selectableCategories.splice(categoryIndex, 1)[0]);
@@ -1618,20 +1808,21 @@ const manageCategorydropdownItems = (e, selected, selectable, dropdownDiv, dropd
 };
 
 /**
- * TODO: complete
- * Hide category dropdown if clicked outside category search.
+ * Hide tags dropdown if clicked outside category search.
  *
  * @param {PointerEvent} e a click.
  * @param {string} selected
  * @param {string} selectable
  * @param {string} dropdownDiv
  * @param {string} dropdown
- * @param {object} promiseFunction
+ * @param {object} dropdownHelper
  * @param {object} page
  **/
-const manageTagsdropdownItems = (e, selected, selectable, dropdownDiv, dropdown, promiseFunction, page) => {// eslint-disable-line
+const manageTagsdropdownItems = (e, selected, selectable, dropdownDiv, dropdown, dropdownHelper, page) => {// eslint-disable-line
     const template = 'block_eledia_telc_coursesearch/nav-tags-dropdown';
     const tagsId = e.target.dataset.tagsId;
+    dropdownDiv = dropdownHelper('tags', dropdownDiv);
+    dropdown = dropdownHelper('tags', dropdown);
     if (e.target.classList.contains(selectable)) {
         const tagsIndex = selectableTags.findIndex(value => value.id == tagsId);
         selectedTags.push(selectableTags.splice(tagsIndex, 1)[0]);
@@ -1655,7 +1846,6 @@ const manageTagsdropdownItems = (e, selected, selectable, dropdownDiv, dropdown,
  *
  */
 function manageCustomfielddropdownCollapse() {
-    // TODO: Somehow this kills the collapsed items.
     const page = document.querySelector(SELECTORS.region.selectBlock);
     const customfieldDropdowns = page.querySelectorAll(SELECTORS.customfields.dropdownAll);
     customfieldDropdowns.forEach(dropdown => {
@@ -1665,11 +1855,11 @@ function manageCustomfielddropdownCollapse() {
             dropdown.style.display = 'block';
         }
     });
-    this.customfields.forEach((v, i) => {
+    customfields.forEach((v, i) => {
         if (i !== currentCustomField) {
             const customFields = document.getElementsByClassName('collapse-cfid-' + i);
             Array.from(customFields).forEach(cf => {
-                if (this.selectedCustomfields[i] !== undefined && this.selectedCustomfields[i].length) {
+                if (selectedCustomfields[i] !== undefined && selectedCustomfields[i].length) {
                     cf.classList.remove('collapse-enabled');
                 } else if (!cf.classList.contains('collapse-enabled')) {
                     cf.classList.add('collapse-enabled');
