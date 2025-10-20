@@ -1971,6 +1971,7 @@ const manageCustomfielddropdownItems = (e, selected, selectable, dropdownDiv, dr
     const customfieldValue = e.target.dataset.selectvalue;
     const customfieldName = e.target.dataset.selectname;
     const customfieldId = e.target.dataset.customfieldid;
+    const selectedLength = selectedCustomfields[customfieldId].length;
     window.console.log('manageCustomfielddropdownItems');
     window.console.log(e);
     window.console.log(customfieldId);
@@ -1980,11 +1981,11 @@ const manageCustomfielddropdownItems = (e, selected, selectable, dropdownDiv, dr
         selectedCustomfields[customfieldId].sort((a, b) => {
             return ('' + a.name).localeCompare(b.name);
         });
-        //filteredCustomfields[customfieldId].splice(
-        //    filteredCustomfields[customfieldId].findIndex(item => item.value == customfieldValue),
-        //    1);
-        window.console.log('selectable');
-        window.console.log(selectedCustomfields);
+
+        if ((!selectedLength && selectedCustomfields[customfieldId].length > 0)) {
+            window.console.log('customfields reversed1');
+            customReverseState = !customReverseState;
+        }
     } else if (e.target.classList.contains(selected)) {
         const customfieldIndex = selectedCustomfields[customfieldId].findIndex(item => item.value == customfieldValue);
         const interchangedValue = selectedCustomfields[customfieldId].splice(customfieldIndex, 1)[0];
@@ -1998,8 +1999,10 @@ const manageCustomfielddropdownItems = (e, selected, selectable, dropdownDiv, dr
         filteredCustomfields[customfieldId].sort((a, b) => {
             return ('' + a.name).localeCompare(b.name);
         });
-        window.console.log('selected');
-        window.console.log(selectedCustomfields);
+        if ((selectedLength && selectedCustomfields[customfieldId].length === 0)) {
+            window.console.log('customfields reversed2');
+            customReverseState = !customReverseState;
+        }
     }
     const dropdowns = dropdownHelper('customfields', dropdownDiv, true);
     return dropdowns.forEach(ddiv => {
