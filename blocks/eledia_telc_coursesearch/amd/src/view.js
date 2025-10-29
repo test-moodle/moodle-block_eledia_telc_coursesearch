@@ -762,11 +762,9 @@ const renderCustomfields = (dropdownDiv, dropdown, customfieldsData, selectionsD
         window.console.log('renderResult');
         window.console.log(renderResult);
         const cuDropdowns = page.querySelectorAll(dropdown);
-        // const cuDropdown = page.querySelector(dropdown);
         window.console.log(dropdown);
         window.console.log(cuDropdowns);
         cuDropdowns.forEach(cuDropdown => { cuDropdown.style.display = 'block'; });
-        // cuDropdown.style.display = 'block';
         window.console.log('renderCustomfields wnd');
         return renderResult;
     }).catch(error => displayException(error));
@@ -1356,7 +1354,6 @@ const registerEventListeners = (root, page) => {
     customInputs.forEach(i => {
         i.addEventListener('click', (e) => {
             currentCustomField = e.target.dataset.customfieldid;
-            handleCustomfieldSwitch(currentCustomField);
             const currentSearchterm = e.target.value.toLowerCase();
             initializeCustomfieldSearchContent(
                 SELECTORS.customfields.dropdownDiv + currentCustomField,
@@ -1929,24 +1926,22 @@ const manageTagsdropdownItems = (e, selected, selectable, dropdownDiv, dropdown,
 };
 
 /**
- * Handles UI changes when switching between customfield inputs.
+ * Hide customfield dropdown if clicked outside customfield search.
  *
- * @param {string} newCurrentId The ID of the newly focused custom field.
  */
-function handleCustomfieldSwitch(newCurrentId) {
+function manageCustomfielddropdownCollapse() {
     const page = document.querySelector(SELECTORS.region.selectBlock);
     const customfieldDropdowns = page.querySelectorAll(SELECTORS.customfields.dropdownAll);
-
-    // Close other dropdowns.
     customfieldDropdowns.forEach(dropdown => {
-        if (!dropdown.classList.contains(SELECTORS.customfields.dropdown + newCurrentId)) {
+        if (!dropdown.classList.contains(SELECTORS.customfields.dropdown + currentCustomField)) {
             dropdown.style.display = 'none';
+            customReverseState = false;
+        } else {
+            dropdown.style.display = 'block';
         }
     });
-
-    // Update classes for other fields.
     customfields.forEach((v, i) => {
-        if (i != newCurrentId) {
+        if (i !== currentCustomField) {
             const customFields = document.getElementsByClassName('collapse-cfid-' + i);
             const collapseDisabled = (selectedCustomfields[i] !== undefined && selectedCustomfields[i].length);
             Array.from(customFields).forEach(cf => {
@@ -1957,54 +1952,6 @@ function handleCustomfieldSwitch(newCurrentId) {
                 }
             });
         }
-    });
-}
-
-/**
- * Hide customfield dropdown if clicked outside customfield search.
- *
- * @param {PointerEvent} e a click.
- */
-function manageCustomfielddropdownCollapse(e) {
-    const page = document.querySelector(SELECTORS.region.selectBlock);
-    const customfieldDropdowns = page.querySelectorAll(SELECTORS.customfields.dropdownAll);
-    const customfieldInputs = page.querySelectorAll(SELECTORS.customfields.input);
-
-    // We don't want to close the dropdown if clicking inside it or the input field.
-    for (const dropdown of customfieldDropdowns) {
-        if (dropdown.contains(e.target)) {
-            return;
-        }
-    }
-    for (const input of customfieldInputs) {
-        if (input.contains(e.target)) {
-            return;
-        }
-    }
-    const clearIcons = page.querySelectorAll(SELECTORS.customfields.clearIcon);
-    for (const icon of clearIcons) {
-        if (icon.contains(e.target)) {
-            return;
-        }
-    }
-
-    window.console.log('manageCustomfielddropdownCollapse');
-    customReverseState = false;
-
-    customfieldDropdowns.forEach(dropdown => {
-        dropdown.style.display = 'none';
-    });
-
-    customfields.forEach((v, i) => {
-        const customFields = document.getElementsByClassName('collapse-cfid-' + i);
-        const collapseDisabled = (selectedCustomfields[i] !== undefined && selectedCustomfields[i].length);
-        Array.from(customFields).forEach(cf => {
-            if (collapseDisabled) {
-                cf.classList.remove('collapse-enabled');
-            } else if (!cf.classList.contains('collapse-enabled')) {
-                cf.classList.add('collapse-enabled');
-            }
-        });
     });
 }
 
@@ -2025,9 +1972,8 @@ const manageCustomfielddropdownItems = (e, selected, selectable, dropdownDiv, dr
     const customfieldName = e.target.dataset.selectname;
     const customfieldId = e.target.dataset.customfieldid;
     const selectedLength = selectedCustomfields[customfieldId].length;
-    // dropdownDiv = dropdownHelper('customfields', dropdownDiv);
-    // dropdown = dropdownHelper('customfields', dropdown);
     window.console.log('manageCustomfielddropdownItems');
+    window.console.log(e);
     window.console.log(customfieldId);
     if (e.target.classList.contains(selectable)) {
         const customfieldIndex = filteredCustomfields[customfieldId].findIndex(item => item.value == customfieldValue);
@@ -2058,11 +2004,6 @@ const manageCustomfielddropdownItems = (e, selected, selectable, dropdownDiv, dr
             customReverseState = !customReverseState;
         }
     }
-    // return renderCustomfields(dropdownDiv,
-    //     dropdown,
-    //     filteredCustomfields[customfieldId],
-    //     selectedCustomfields[customfieldId],
-    //     page);
     const dropdowns = dropdownHelper('customfields', dropdownDiv, true);
     return dropdowns.forEach(ddiv => {
 
