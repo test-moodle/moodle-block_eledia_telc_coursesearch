@@ -500,12 +500,12 @@ class externallib extends external_api {
 
 		if ($progress === 'past') {
 			$timestamp = time();
-			$sql .= " AND (c.enddate > $timestamp OR c.enddate = 0 ) ";
+			$sql .= " AND (c.enddate < $timestamp OR c.enddate = 0 ) ";
 		}
 
 		if ($progress === 'future') {
 			$timestamp = time();
-			$sql .= " AND c.startdate < $timestamp ";
+			$sql .= " AND c.startdate > $timestamp ";
 		}
 
 		if ($progress === 'inprogress') {
