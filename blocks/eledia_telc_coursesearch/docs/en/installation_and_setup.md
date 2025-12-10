@@ -78,6 +78,13 @@ This breaks the plugin frontend if changed.
 - The layout switch button vanishes.  
 - Select both options, then everything is as expected.  
 
+#### Selected options items position
+Status: functional  
+Choose where the selected options items are displayed:  
+- Top of the block (above the search fields)  
+- Bottom of the block (below the search fields)
+Default: Off
+
 ### Available filters
 
 #### All (including removed from view)

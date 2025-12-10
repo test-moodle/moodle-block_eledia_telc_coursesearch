@@ -36,8 +36,11 @@ Das Plugin besteht aus zwei Hauptbereichen:
    - Um ein Element abzuwählen, klicken Sie erneut darauf.  
    - Der Ergebnisbereich des Plugins wird sofort aktualisiert.
 
-Je nach Anzahl der verfügbaren Suchfelder kann es eine Schaltfläche **Suche erweitern** geben, um zusätzliche Felder einzublenden.
+Je nach Anzahl der verfügbaren Suchfelder kann es eine Schaltfläche **Suche erweitern** geben, um zusätzliche Felder einzublenden.  
+  
+Wenn vom Administrator aktiviert, gibt es eine Anzeige aller ausgewählten Filter. Diese können hier auch abgewählt werden.  
 
+<img src="../assets/ausgewaehlte_optionen.png" alt="Suchbereich und Ergebnisansicht" width="50%">
 ### Volltextsuche
 
 Die Volltextsuche wendet den Suchbegriff auf den Kursnamen und die Kursbeschreibung an.  

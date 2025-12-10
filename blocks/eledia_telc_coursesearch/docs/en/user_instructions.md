@@ -38,6 +38,9 @@ The plugin consists of two main sections:
 
 Depending on the number of available search fields, there might be an **Expand search** button to reveal additional fields.
 
+If enabled by the administrator, there is a display of all selected filters. They can also be unselected here.
+<img src="../assets/ausgewaehlte_optionen.png" alt="Search section and results view" width="50%">
+
 ### Full-text search
 
 The full-text search applies the search term to the course name and description.  

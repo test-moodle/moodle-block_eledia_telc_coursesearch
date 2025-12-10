@@ -86,6 +86,11 @@ Wenn geändert, funktioniert das Frontend des Plugins nicht mehr korrekt.
 Status: nicht funktionsfähig  
 Einige Teile des Codes erwarten diese Option, sie hat jedoch keine funktionale Auswirkung.
 
+#### Position der ausgewählten Optionen 
+Status: funktionsfähig  
+Legt fest, ob die ausgewählten Optionen oben oder unten im Dropdown angezeigt werden.
+Standard ist **Aus**.
+
 #### Alle
 Status: funktionsfähig  
 Wenn deaktiviert, ist die Option **Alle** im Fortschritts-Dropdown für Kurse nicht verfügbar.  
