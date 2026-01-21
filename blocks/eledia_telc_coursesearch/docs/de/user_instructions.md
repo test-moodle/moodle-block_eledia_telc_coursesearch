@@ -8,7 +8,7 @@
 - Benutzerdefinierte Kursfelder  
 - Schlagwörter  
 
-Sie können zwischen zwei Ergebnisformaten wählen: **Liste** und **Karten**.  
+Sie können zwischen zwei Ergebnisformaten wählen: **Liste** und **Kacheln**.  
 
 Die durchsuchbaren Auswahlfelder (**Dropdowns**) erlauben Mehrfachauswahl und beeinflussen sich gegenseitig.  
 Das bedeutet: Wenn Sie in einem Feld etwas auswählen, zeigen die anderen Felder nur noch gültige Auswahloptionen an, die Ergebnisse liefern.
@@ -48,7 +48,7 @@ Es kann eine Seite mit der Meldung **„Keine Ergebnisse“** angezeigt werden.
 
 ## Ergebnisbereich
 
-Dieser Bereich enthält die Suchergebnisse entweder in Listenform oder in Kartenform, die die gefundenen Kurse anzeigen.  
+Dieser Bereich enthält die Suchergebnisse entweder in Listenform oder in Kachelform, die die gefundenen Kurse anzeigen.  
 
 Wenn es eine Kursbeschreibung gibt, können Sie diese in der Listenansicht erweitern.
 

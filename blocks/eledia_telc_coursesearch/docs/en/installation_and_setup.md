@@ -61,7 +61,7 @@ To change the order, drag the custom fields into the required order.
 Unused custom fields or custom fields without the visibility set to **Everyone** are not displayed in the plugin.
 
 ## Settings
-Most settings should not be changed. Due to time constraints, it wasn't possible to fit the settings page to the new requirements of the plugin.  
+Most settings should not be changed.
 
 Following is a list of the available settings and their state.
 
