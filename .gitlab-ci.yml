@@ -546,27 +546,32 @@ behat_moodle:
         if [ -z "$TAG_EXPR" ]; then TAG_EXPR="~$t"; else TAG_EXPR="$TAG_EXPR&&~$t"; fi
       done
 
+      # Behat junit formatter creates a directory structure, so use /tmp first
+      mkdir -p /tmp/behat-junit
+      
       if [ -n "$TAG_EXPR" ]; then
         vendor/bin/behat \
           --config /tmp/moodledata_behat/behatrun/behat/behat.yml \
           --format pretty --out std \
-          --format junit --out "$CI_PROJECT_DIR/behat-junit.xml" \
+          --format junit --out /tmp/behat-junit \
           --tags "$TAG_EXPR" \
           "/tmp/moodle/$PLUGIN_PATH/tests/behat" || true
       else
         vendor/bin/behat \
           --config /tmp/moodledata_behat/behatrun/behat/behat.yml \
           --format pretty --out std \
-          --format junit --out "$CI_PROJECT_DIR/behat-junit.xml" \
+          --format junit --out /tmp/behat-junit \
           "/tmp/moodle/$PLUGIN_PATH/tests/behat" || true
       fi
 
+      # Copy the entire behat-junit directory to CI_PROJECT_DIR
+      cp -r /tmp/behat-junit "$CI_PROJECT_DIR/" || mkdir -p "$CI_PROJECT_DIR/behat-junit"
       : >> "$CI_PROJECT_DIR/behat_notice.txt"
 
   artifacts:
     when: always
     paths:
-      - behat-junit.xml
+      - behat-junit/
       - behat_notice.txt
     expire_in: 1 week
   allow_failure: true
@@ -695,11 +700,11 @@ summary:
 
     # ---- Behat ----
     - |
-      if [ -f behat-junit.xml/default.xml ]; then
-        BEHAT_TESTS=$(xmllint --xpath 'string(//testsuite/@tests)' behat-junit.xml/default.xml 2>/dev/null || echo 0)
-        BEHAT_FAILURES=$(xmllint --xpath 'string(//testsuite/@failures)' behat-junit.xml/default.xml 2>/dev/null || echo 0)
-        BEHAT_ERRORS=$(xmllint --xpath 'string(//testsuite/@errors)' behat-junit.xml/default.xml 2>/dev/null || echo 0)
-        BEHAT_SKIPPED=$(xmllint --xpath 'string(//testsuite/@skipped)' behat-junit.xml/default.xml 2>/dev/null || echo 0)
+      if [ -f behat-junit/default.xml ]; then
+        BEHAT_TESTS=$(xmllint --xpath 'string(//testsuite/@tests)' behat-junit/default.xml 2>/dev/null || echo 0)
+        BEHAT_FAILURES=$(xmllint --xpath 'string(//testsuite/@failures)' behat-junit/default.xml 2>/dev/null || echo 0)
+        BEHAT_ERRORS=$(xmllint --xpath 'string(//testsuite/@errors)' behat-junit/default.xml 2>/dev/null || echo 0)
+        BEHAT_SKIPPED=$(xmllint --xpath 'string(//testsuite/@skipped)' behat-junit/default.xml 2>/dev/null || echo 0)
 
         if [ "$BEHAT_TESTS" -gt 0 ] && [ "$BEHAT_FAILURES" -eq 0 ] && [ "$BEHAT_ERRORS" -eq 0 ]; then
           BEHAT_FAIL=0
@@ -709,11 +714,11 @@ summary:
 
         printf "%-10s | %-8s | %s tests, %s failures, %s errors, %s skipped | %s\n" \
           "Behat" "$( [ $BEHAT_FAIL -eq 0 ] && echo '✅ OK' || echo '❌ FAIL')" \
-          "$BEHAT_TESTS" "$BEHAT_FAILURES" "$BEHAT_ERRORS" "$BEHAT_SKIPPED" "behat-junit.xml/default.xml" >> summary.md
+          "$BEHAT_TESTS" "$BEHAT_FAILURES" "$BEHAT_ERRORS" "$BEHAT_SKIPPED" "behat-junit/default.xml" >> summary.md
         echo "--------------------------------------------------" >> summary.md
         echo "   🔎 Behat (first 10 scenarios)" >> summary.md
         echo "--------------------------------------------------" >> summary.md
-        xmllint --xpath '//testcase' behat-junit.xml/default.xml 2>/dev/null \
+        xmllint --xpath '//testcase' behat-junit/default.xml 2>/dev/null \
           | grep -oP 'name="[^"]+"' \
           | sed -E 's/name="(.*)"/\1/' \
           | head -n 10 >> summary.md || echo "No scenarios" >> summary.md
@@ -748,7 +753,7 @@ summary:
       - "$CI_PROJECT_DIR/semgrep-error.json"
       - "$CI_PROJECT_DIR/trivy-report.json"
       - "$CI_PROJECT_DIR/junit.xml"
-      - "$CI_PROJECT_DIR/behat-junit.xml"
+      - "$CI_PROJECT_DIR/behat-junit/"
     expire_in: 1 week
 
 
