@@ -14,7 +14,6 @@ use context_system;
 
 use core_course\external\course_summary_exporter;
 
-require_once(__DIR__ . "/../../../course/lib.php");
 require_once($CFG->dirroot . '/course/externallib.php');
 require_once($CFG->dirroot . '/course/renderer.php');
 defined('MOODLE_INTERNAL') || die();
