@@ -475,22 +475,22 @@ class main implements renderable, templatable {
             ]);
 
         $chelper->set_attributes(['class' => 'frontpage-course-list-all']);
-        $users_courses = \core_course_category::top()->get_courses($chelper->get_courses_display_options());
+        $userscourses = \core_course_category::top()->get_courses($chelper->get_courses_display_options());
         // Collapse remaining fields if there are more than 4 custom fields.
         // I know, it's pretty.
         $customfields = array_values(array_filter(externallib::get_customfields(), fn($value) => !is_null($value)));
-        $customfields_collapse = false;
-        $customfield_collapsable = false;
+        $customfieldscollapse = false;
+        $customfieldcollapsable = false;
         if (count($customfields) > 4) {
-            $customfields_collapse = array_splice($customfields, 4);
+            $customfieldscollapse = array_splice($customfields, 4);
             $customfields = array_splice($customfields, 0, 4);
-            $customfield_collapsable = true;
+            $customfieldcollapsable = true;
         }
-        $options_position = get_config('block_eledia_telc_coursesearch', 'options_position');
+        $optionsposition = get_config('block_eledia_telc_coursesearch', 'options_position');
 
         $defaultvariables = [
             // 'totalcoursecount' => count(enrol_get_all_users_courses($USER->id, true)),
-            'totalcoursecount' => count($users_courses),
+            'totalcoursecount' => count($userscourses),
             'nocoursesimg' => $nocoursesurl,
             'newcourseurl' => $newcourseurl,
             'grouping' => $this->grouping,
@@ -511,16 +511,16 @@ class main implements renderable, templatable {
             'displaygroupingselector' => $this->displaygroupingselector,
             'displaygroupingcustomfield' => $this->displaygroupingcustomfield && $customfieldvalues,
             'customfields' => $customfields,
-            'customfields_collapse' => $customfields_collapse,
-            'customfield_collapsable' => $customfield_collapsable,
+            'customfields_collapse' => $customfieldscollapse,
+            'customfield_collapsable' => $customfieldcollapsable,
             'customfieldname' => $this->customfiltergrouping,
             'customfieldvalue' => $this->customfieldvalue,
             'customfieldvalues' => $customfieldvalues,
             'selectedcustomfield' => $selectedcustomfield,
             'showsortbyshortname' => $CFG->courselistshortnames,
         ];
-        if ($options_position) {
-            $defaultvariables['options_' . $options_position] = true;
+        if ($optionsposition) {
+            $defaultvariables['options_' . $optionsposition] = true;
         }
         return array_merge($defaultvariables, $preferences);
     }

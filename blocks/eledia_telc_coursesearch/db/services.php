@@ -14,6 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * External functions and service declarations for eledia_telc_coursesearch block
+ *
+ * @package    block_eledia_telc_coursesearch
+ * @copyright  2024
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+defined('MOODLE_INTERNAL') || die();
+
 $functions = [
     // The name of your web service function, as discussed above.
     'block_eledia_telc_coursesearch_get_categories' => [

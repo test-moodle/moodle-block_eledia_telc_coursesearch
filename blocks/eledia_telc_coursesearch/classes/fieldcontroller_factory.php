@@ -18,7 +18,20 @@ namespace block_eledia_telc_coursesearch;
 
 use core_customfield\field_controller;
 
+/**
+ * Field controller factory class
+ *
+ * @package    block_eledia_telc_coursesearch
+ * @copyright  2024
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class fieldcontroller_factory {
+    /**
+     * Create field controller
+     *
+     * @param field_controller $field Field controller
+     * @return mixed
+     */
     public static function create(field_controller $field) {
         $classname = "block_eledia_telc_coursesearch\\" . explode('\\', get_class($field))[0];
         if (!class_exists($classname)) {

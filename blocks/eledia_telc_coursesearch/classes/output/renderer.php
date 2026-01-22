@@ -51,10 +51,10 @@ class renderer extends plugin_renderer_base {
             ]);
 
         $chelper->set_attributes(['class' => 'frontpage-course-list-all']);
-        $users_courses = \core_course_category::top()->get_courses($chelper->get_courses_display_options());
+        $userscourses = \core_course_category::top()->get_courses($chelper->get_courses_display_options());
 
-        // if (!count(enrol_get_all_users_courses($USER->id, true))) {
-        if (!count($users_courses)) {
+        // If (!count(enrol_get_all_users_courses($USER->id, true))) {
+        if (!count($userscourses)) {
             return $this->render_from_template(
                 'block_eledia_telc_coursesearch/zero-state',
                 $main->export_for_zero_state_template($this)

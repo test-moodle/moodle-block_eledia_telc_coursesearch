@@ -16,24 +16,45 @@
 
 namespace block_eledia_telc_coursesearch;
 
+/**
+ * Custom field multiselect class
+ *
+ * @package    block_eledia_telc_coursesearch
+ * @copyright  2024
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class customfield_multiselect {
+    /**
+     * @var object Custom field object
+     */
     private $customfield;
 
+    /**
+     * Constructor
+     *
+     * @param object $customfield Custom field object
+     */
     public function __construct($customfield) {
         $this->customfield = $customfield;
     }
 
+    /**
+     * Format course grouping values
+     *
+     * @param array $values Values to format
+     * @return array
+     */
     public function course_grouping_format_values($values) {
-        $all_options = $this->customfield->get_options_array($this->customfield);
+        $alloptions = $this->customfield->get_options_array($this->customfield);
 
         $intermediate = [];
         foreach ($values as $value) {
             $intermediate = array_merge($intermediate, explode(',', $value));
         }
-        $unique_values = array_values(array_unique($intermediate));
+        $uniquevalues = array_values(array_unique($intermediate));
         $options = [];
-        foreach ($unique_values as $unique_value) {
-            $options[$unique_value] = $all_options[$unique_value];
+        foreach ($uniquevalues as $uniquevalue) {
+            $options[$uniquevalue] = $alloptions[$uniquevalue];
         }
         return $options;
     }

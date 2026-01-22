@@ -14,7 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * External library class for eledia_telc_coursesearch block
+ *
+ * @package    block_eledia_telc_coursesearch
+ * @copyright  2024
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace block_eledia_telc_coursesearch;
+
+defined('MOODLE_INTERNAL') || die();
 
 use core_external\external_api;
 use core_external\external_function_parameters;
@@ -29,15 +39,29 @@ use core_course\external\course_summary_exporter;
 
 require_once($CFG->dirroot . '/course/externallib.php');
 require_once($CFG->dirroot . '/course/renderer.php');
-defined('MOODLE_INTERNAL') || die();
 
+/**
+ * External library class
+ *
+ * @package    block_eledia_telc_coursesearch
+ * @copyright  2024
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class externallib extends external_api {
-    // Define input parameters (none in this case)
+    /**
+     * Define input parameters
+     *
+     * @return external_function_parameters
+     */
     public static function get_data_parameters() {
         return new external_function_parameters([]);
     }
 
-    // Webservice logic to return courses for the logged-in user
+    /**
+     * Webservice logic to return courses for the logged-in user
+     *
+     * @return array
+     */
     public static function get_data() {
         global $USER, $DB;
 
@@ -67,7 +91,11 @@ class externallib extends external_api {
         return $result;
     }
 
-    // Define the output structure for the webservice
+    /**
+     * Define the output structure for the webservice
+     *
+     * @return external_multiple_structure
+     */
     public static function get_data_returns() {
         return new external_multiple_structure(
             new external_single_structure([
@@ -78,31 +106,43 @@ class externallib extends external_api {
         );
     }
 
-
-    private static function extract_subset_by_strings(array $searchStrings, array $result, int $allowedRecursions = 20) {
-        if (empty($searchStrings) || $allowedRecursions < count($searchStrings)) {
+    /**
+     * Extract subset by strings
+     *
+     * @param array $searchstrings Search strings
+     * @param array $result Result array
+     * @param int $allowedrecursions Maximum allowed recursions
+     * @return array
+     */
+    private static function extract_subset_by_strings(array $searchstrings, array $result, int $allowedrecursions = 20) {
+        if (empty($searchstrings) || $allowedrecursions < count($searchstrings)) {
             return $result;
         }
-        // $allowedRecursions = $allowedRecursions - 1;
-        $currentSearchStr = array_shift($searchStrings);
-        $result['courses'] = array_map(function ($course) use ($currentSearchStr) {
+        // AllowedRecursions = $allowedRecursions - 1;
+        $currentsearchstr = array_shift($searchstrings);
+        $result['courses'] = array_map(function ($course) use ($currentsearchstr) {
             $course = (array)$course;
             /*
             $course = array_filter($course, function ($value, $key) {
             return !in_array($key, ['summary', 'courseimage']);
             }, ARRAY_FILTER_USE_BOTH);
             */
-            $matchFound = array_reduce(array_keys($course), function ($carry, $key) use ($course, $currentSearchStr) {
-                return $carry || (is_string($course[$key]) && preg_match("/" . $currentSearchStr . "/i", $course[$key]));
+            $matchfound = array_reduce(array_keys($course), function ($carry, $key) use ($course, $currentsearchstr) {
+                return $carry || (is_string($course[$key]) && preg_match("/" . $currentsearchstr . "/i", $course[$key]));
             }, false);
-            return $matchFound ? $course : null;
+            return $matchfound ? $course : null;
         }, $result['courses']);
 
         $result['courses'] = array_filter($result['courses']);
 
-        return self::extract_subset_by_strings($searchStrings, $result, $allowedRecursions);
+        return self::extract_subset_by_strings($searchstrings, $result, $allowedrecursions);
     }
 
+    /**
+     * Get enrolled courses by timeline classification parameters
+     *
+     * @return external_function_parameters
+     */
     public static function get_enrolled_courses_by_timeline_classification_parameters() {
         return new external_function_parameters(
             [
@@ -138,6 +178,19 @@ class externallib extends external_api {
         );
     }
 
+    /**
+     * Get enrolled courses by timeline classification
+     *
+     * @param string $classification Classification
+     * @param int $limit Limit
+     * @param int $offset Offset
+     * @param string|null $sort Sort order
+     * @param string|null $customfieldname Custom field name
+     * @param string|null $customfieldvalue Custom field value
+     * @param string|null $searchvalue Search value
+     * @param array $requiredfields Required fields
+     * @return array
+     */
     public static function get_enrolled_courses_by_timeline_classification(
         string $classification,
         int $limit = 0,
@@ -148,7 +201,7 @@ class externallib extends external_api {
         ?string $searchvalue = null,
         array $requiredfields = []
     ) {
-        $raw_course_data = self::get_enrolled_courses_by_timeline_classification_raw(
+        $rawcoursedata = self::get_enrolled_courses_by_timeline_classification_raw(
             $classification,
             $limit,
             $offset,
@@ -160,9 +213,23 @@ class externallib extends external_api {
             $requiredfields
         );
 
-        return self::extract_subset_by_strings([ $searchvalue ], $raw_course_data);
-        // return $raw_course_data;
+        return self::extract_subset_by_strings([ $searchvalue ], $rawcoursedata);
+        // Return $raw_course_data;
     }
+
+    /**
+     * Get enrolled courses by timeline classification raw
+     *
+     * @param string $classification Classification
+     * @param int $limit Limit
+     * @param int $offset Offset
+     * @param string|null $sort Sort order
+     * @param string|null $customfieldname Custom field name
+     * @param string|null $customfieldvalue Custom field value
+     * @param string|null $searchvalue Search value
+     * @param array $requiredfields Required fields
+     * @return array
+     */
     private static function get_enrolled_courses_by_timeline_classification_raw(
         string $classification,
         int $limit = 0,
@@ -361,13 +428,29 @@ class externallib extends external_api {
         );
     }
 
-
+    /**
+     * Get course view
+     *
+     * @param array $data Search data
+     * @return array
+     */
     public static function get_courseview(array $data) {
         global $DB;
         $courseids = [];
         [$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
-        $courseids = self::get_filtered_courseids($customfields, $categories, $tags, $searchdata['searchterm'], '', 0, $searchdata['limit'], $searchdata['offset'], false, $searchdata['progress']);
-        if (!sizeof($courseids)) {
+        $courseids = self::get_filtered_courseids(
+            $customfields,
+            $categories,
+            $tags,
+            $searchdata['searchterm'],
+            '',
+            0,
+            $searchdata['limit'],
+            $searchdata['offset'],
+            false,
+            $searchdata['progress']
+        );
+        if (!count($courseids)) {
             return self::zero_response();
         }
         [$insql, $inparams] = $DB->get_in_or_equal($courseids);
@@ -376,17 +459,34 @@ class externallib extends external_api {
         WHERE id $insql
         ";
         $courses = $DB->get_records_sql($sql, $inparams);
-        // return self::get_courses_rendered($courses, $searchdata['offset']);
+        // Return self::get_courses_rendered($courses, $searchdata['offset']);
         return self::get_courses_rendered($courses, 0);
     }
+
+    /**
+     * Filter params helper
+     *
+     * @param array $d Data array
+     * @return mixed
+     */
     public static function filterparams(array $d) {
         return $d['id'];
     }
 
+    /**
+     * Get courseview parameters
+     *
+     * @return external_function_parameters
+     */
     public static function get_courseview_parameters() {
         return self::get_available_parameters();
     }
 
+    /**
+     * Zero response helper
+     *
+     * @return array
+     */
     public static function zero_response(): array {
         $result = [
             'courses' => [],
@@ -395,6 +495,12 @@ class externallib extends external_api {
         return $result;
     }
 
+    /**
+     * Remap search data
+     *
+     * @param array $data Search data
+     * @return array
+     */
     public static function remap_searchdata(array $data): array {
         $searchdata = [];
         foreach ($data as $value) {
@@ -437,22 +543,48 @@ class externallib extends external_api {
     // INFO: Customfield queries are separate from course search. Two DB queries are required to populate a field through search.
     // NOTE: Oops. Theoretically. Due to time constraints for development it is four.
     // INFO: There is no need to send data about which fields are selected because it can be managed stateful by frontend.
+    // TODO: MDL-XXXXX Make dynamic multiple JOIN statements.
 
-    // TODO: Make dynamic multiple JOIN statements.
-    protected static function get_filtered_courseids(array $customfields, array $categories = [], array $tags = [], string $searchterm = '', string $excludetype = 'customfield', string | int $excludevalue = 0, int $limit = 0, int $offset = 0, $contextids = false, $progress = 'all') {
+    /**
+     * Get filtered course ids
+     *
+     * @param array $customfields Custom fields
+     * @param array $categories Categories
+     * @param array $tags Tags
+     * @param string $searchterm Search term
+     * @param string $excludetype Exclude type
+     * @param string|int $excludevalue Exclude value
+     * @param int $limit Limit
+     * @param int $offset Offset
+     * @param bool $contextids Return context ids
+     * @param string $progress Progress filter
+     * @return array
+     */
+    protected static function get_filtered_courseids(
+        array $customfields,
+        array $categories = [],
+        array $tags = [],
+        string $searchterm = '',
+        string $excludetype = 'customfield',
+        string | int $excludevalue = 0,
+        int $limit = 0,
+        int $offset = 0,
+        $contextids = false,
+        $progress = 'all'
+    ) {
         global $DB, $USER;
         self::validate_context(\context_user::instance($USER->id));
-        $current_customfield = $excludetype === 'customfield' ? $excludevalue : false;
-        $customfields = self::filterconvert_multiselect_customfields($customfields, $current_customfield);
+        $currentcustomfield = $excludetype === 'customfield' ? $excludevalue : false;
+        $customfields = self::filterconvert_multiselect_customfields($customfields, $currentcustomfield);
         // Build query for all courses that have the customfield selection minus the one in question.
         $insqls = '';
         $customjoins = '';
         $customsqls = [];
         $allparams = [];
-        $customfield_id = $excludetype === 'customfield' ? (string) $excludevalue : -1;
+        $customfieldid = $excludetype === 'customfield' ? (string) $excludevalue : -1;
         foreach ($customfields as $customfield) {
-            // TODO: The int conversion should be changed to sql parameter.
-            if ((int) $customfield['fieldid'] === (int) $customfield_id || !sizeof($customfield['fieldvalues'])) {
+            // TODO: MDL-XXXXX The int conversion should be changed to sql parameter.
+            if ((int) $customfield['fieldid'] === (int) $customfieldid || !count($customfield['fieldvalues'])) {
                     continue;
             }
             $cid = (int) $customfield['fieldid'];
@@ -462,7 +594,7 @@ class externallib extends external_api {
             $wherequery = " cd$cid.value $insql ";
             $customsqls[] = $wherequery;
         }
-        if (sizeof($customsqls)) {
+        if (count($customsqls)) {
             $insqls = ' AND ' . implode(' AND ', $customsqls) . ' ';
         }
 
@@ -471,7 +603,7 @@ class externallib extends external_api {
             $categories = [];
         }
 
-        if (sizeof($categories)) {
+        if (count($categories)) {
             [$insql, $params] = $DB->get_in_or_equal($categories, SQL_PARAMS_NAMED);
             $allparams = array_merge($allparams, $params);
             $query = " AND c.category $insql ";
@@ -484,7 +616,7 @@ class externallib extends external_api {
             $categories = [];
         }
 
-        if (sizeof($tags)) {
+        if (count($tags)) {
             $tagsql = " LEFT JOIN {tag_instance} ti ON ti.itemtype = 'course' AND ti.component = 'core' AND ti.itemid = c.id ";
             [$insql, $params] = $DB->get_in_or_equal($tags, SQL_PARAMS_NAMED);
             $allparams = array_merge($allparams, $params);
@@ -508,17 +640,17 @@ class externallib extends external_api {
             ]);
 
         $chelper->set_attributes(['class' => 'frontpage-course-list-all']);
-        $users_courses = core_course_category::top()->get_courses($chelper->get_courses_display_options());
+        $userscourses = core_course_category::top()->get_courses($chelper->get_courses_display_options());
 
-        $id_type = $contextids ? 'ctx.id' : 'c.id';
-        // throw new \Exception($id_type);
+        $idtype = $contextids ? 'ctx.id' : 'c.id';
+        // Throw new \Exception($idtype);
 
-        // $comparevalue = $DB->sql_compare_text('cd.value');
-        $course_ids = [];
-        // TODO: Account for child categories. An extra self join query might be required.
+        // Comparevalue = $DB->sql_compare_text('cd.value');
+        $courseids = [];
+        // TODO: MDL-XXXXX Account for child categories. An extra self join query might be required.
         $contextlevel = CONTEXT_COURSE;
         $sql = "
-           SELECT DISTINCT $id_type
+           SELECT DISTINCT $idtype
              FROM {course} c
         LEFT JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = $contextlevel
         LEFT JOIN {customfield_data} cd ON cd.contextid = ctx.id
@@ -533,10 +665,10 @@ class externallib extends external_api {
             $allparams['cfullname'] = "%$searchterm%";
             $allparams['cshortname'] = "%$searchterm%";
             $allparams['csummary'] = "%$searchterm%";
-            $fullname_like = $DB->sql_like('c.fullname', ':cfullname', false);
-            $shortname_like = $DB->sql_like('c.shortname', ':cshortname', false);
-            $summary_like = $DB->sql_like('c.summary', ':csummary', false);
-            $sql .= " AND ($fullname_like OR $shortname_like OR $summary_like) ";
+            $fullnamelike = $DB->sql_like('c.fullname', ':cfullname', false);
+            $shortnamelike = $DB->sql_like('c.shortname', ':cshortname', false);
+            $summarylike = $DB->sql_like('c.summary', ':csummary', false);
+            $sql .= " AND ($fullnamelike OR $shortnamelike OR $summarylike) ";
         }
 
         if ($progress === 'past') {
@@ -563,19 +695,32 @@ class externallib extends external_api {
             $allparams['offset'] = $offset;
         }
 
-        $ids_unfiltered = $DB->get_records_sql($sql, $allparams);
-        $ids_unfiltered = array_keys($ids_unfiltered);
+        $idsunfiltered = $DB->get_records_sql($sql, $allparams);
+        $idsunfiltered = array_keys($idsunfiltered);
 
         if ($contextids) {
-            [$insql, $inparams] = $DB->get_in_or_equal($users_courses);
-            $context_ids = array_keys($DB->get_records_select('context', " instanceid $insql AND contextlevel = $contextlevel ", $inparams, 'id', 'id'));
-            $ids_filtered = array_intersect($ids_unfiltered, $context_ids);
+            [$insql, $inparams] = $DB->get_in_or_equal($userscourses);
+            $contextids = array_keys($DB->get_records_select(
+                'context',
+                " instanceid $insql AND contextlevel = $contextlevel ",
+                $inparams,
+                'id',
+                'id'
+            ));
+            $idsfiltered = array_intersect($idsunfiltered, $contextids);
         } else {
-            $ids_filtered = array_intersect($ids_unfiltered, $users_courses);
+            $idsfiltered = array_intersect($idsunfiltered, $userscourses);
         }
-        return $ids_filtered;
+        return $idsfiltered;
     }
 
+    /**
+     * Get courses rendered
+     *
+     * @param array $courses Array of courses
+     * @param int $offset Offset value
+     * @return array
+     */
     protected static function get_courses_rendered(array $courses, int $offset): array {
         global $PAGE;
 
@@ -598,7 +743,7 @@ class externallib extends external_api {
 
         $result = [
             'courses' => $formattedcourses,
-            'nextoffset' => $offset + sizeof($formattedcourses),
+            'nextoffset' => $offset + count($formattedcourses),
         ];
         return $result;
     }
@@ -695,10 +840,16 @@ class externallib extends external_api {
         return core_course_external::get_categories_returns();
     }
 
-    // TODO: Get sub categories of categories which are transmitted as selected.
+    // TODO: MDL-XXXXX Get sub categories of categories which are transmitted as selected.
     // This should be an own method to be used in standard search too.
     // The method should be applied in get_filtered_courseids() additionally to
     // this method (only if no categories are being searched for dropdown).
+    /**
+     * Get available categories
+     *
+     * @param array $data Search data
+     * @return array
+     */
     public static function get_available_categories(array $data): array {
         global $DB;
         $courseids = [];
@@ -706,12 +857,25 @@ class externallib extends external_api {
         $params = null;
 
         [$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
-        if (sizeof($searchdata) && sizeof($courseids = self::get_filtered_courseids($customfields, [], $tags, $searchdata['searchterm'], 'categories', 0, 0, 0, false, $searchdata['progress']))) {
+        if (
+            count($searchdata) && count($courseids = self::get_filtered_courseids(
+                $customfields,
+                [],
+                $tags,
+                $searchdata['searchterm'],
+                'categories',
+                0,
+                0,
+                0,
+                false,
+                $searchdata['progress']
+            ))
+        ) {
             [$insql, $params] = $DB->get_in_or_equal($courseids);
             $whereclause = " WHERE c.id $insql ";
         }
 
-        if (!sizeof($courseids)) {
+        if (!count($courseids)) {
             return [];
         }
         $searchterm = $searchdata['catsearchterm'];
@@ -730,11 +894,11 @@ class externallib extends external_api {
         foreach ($categories = $DB->get_records_sql($sql, $params) as $category) {
             $catids[] = $category->id;
         }
-        if (!sizeof($catids)) {
+        if (!count($catids)) {
             return [];
         }
 
-        // $categories = \core_course_external::get_categories(['ids' => $catids, 'limit' => 6]);
+        // Categories = \core_course_external::get_categories(['ids' => $catids, 'limit' => 6]);
         $parameters = [
             [ 'key' => 'ids', 'value' => implode(',', $catids) ],
         ];
@@ -760,10 +924,21 @@ class externallib extends external_api {
         );
     }
 
+    /**
+     * Get available tags parameters
+     *
+     * @return external_function_parameters
+     */
     public static function get_available_tags_parameters() {
         return self::get_available_parameters();
     }
 
+    /**
+     * Get available tags
+     *
+     * @param array $data Search data
+     * @return array
+     */
     public static function get_available_tags(array $data): array {
         global $DB;
         $courseids = [];
@@ -771,28 +946,41 @@ class externallib extends external_api {
         $tags = [];
 
         [$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
-        if (!sizeof($searchdata) || !sizeof($courseids = self::get_filtered_courseids($customfields, $categories, [], $searchdata['searchterm'], 'tags', 0, 0, 0, false, $searchdata['progress']))) {
+        if (
+            !count($searchdata) || !count($courseids = self::get_filtered_courseids(
+                $customfields,
+                $categories,
+                [],
+                $searchdata['searchterm'],
+                'tags',
+                0,
+                0,
+                0,
+                false,
+                $searchdata['progress']
+            ))
+        ) {
             return [];
         }
 
         [$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
         $searchterm = strtolower($searchdata['tagssearchterm']);
         if (!empty($searchterm)) {
-            $tagname_like = $DB->sql_like('t.name', ':tags_name', false);
+            $tagnamelike = $DB->sql_like('t.name', ':tags_name', false);
             $params['tags_name'] = "%$searchterm%";
-            $and = " AND $tagname_like ";
+            $and = " AND $tagnamelike ";
         }
         $sql = "
         SELECT DISTINCT t.id, t.name
         FROM {tag} t
         JOIN {tag_instance} ti ON ti.tagid = t.id
-        WHERE ti.itemtype = 'course' AND ti.component = 'core' $and AND ti.itemid $insql 
+        WHERE ti.itemtype = 'course' AND ti.component = 'core' $and AND ti.itemid $insql
         LIMIT 6
         ";
 
         $tags = $DB->get_records_sql($sql, $params);
 
-        if (!sizeof($tags)) {
+        if (!count($tags)) {
             return [];
         }
 
@@ -817,12 +1005,18 @@ class externallib extends external_api {
             return [];
         }
 
-        $map_function = $info ? [self::class, 'map_customfield_info'] : [self::class, 'map_customfield_ids'];
+        $mapfunction = $info ? [self::class, 'map_customfield_info'] : [self::class, 'map_customfield_ids'];
 
-        $custom_ids = array_map($map_function, $customfields);
-        return $custom_ids;
+        $customids = array_map($mapfunction, $customfields);
+        return $customids;
     }
 
+    /**
+     * Map customfield ids
+     *
+     * @param object $customfield Custom field object
+     * @return int|null
+     */
     public static function map_customfield_ids($customfield) {
         $configdata = json_decode($customfield->configdata);
         if ((int) $configdata->visibility === 2) {
@@ -830,17 +1024,35 @@ class externallib extends external_api {
         }
     }
 
+    /**
+     * Map customfield info
+     *
+     * @param object $customfield Custom field object
+     * @return object|null
+     */
     public static function map_customfield_info($customfield) {
         $configdata = json_decode($customfield->configdata);
         if ((int) $configdata->visibility === 2) {
-            return (object) ['id' => $customfield->id, 'name' => self::select_translation($customfield->name), 'description' => $customfield->description];
+            return (object) ['id' => $customfield->id, 'name' => self::select_translation($customfield->name),
+                'description' => $customfield->description];
         }
     }
 
+    /**
+     * Get customfields
+     *
+     * @return array
+     */
     public static function get_customfields() {
         return self::get_customfield_fields(true);
     }
 
+    /**
+     * Select translation
+     *
+     * @param string $text Text to translate
+     * @return string
+     */
     public static function select_translation(string $text): string {
         $idx = explode('_', current_language())[0] === 'de' ? 0 : 1;
         $translations = explode(';', $text);
@@ -848,25 +1060,42 @@ class externallib extends external_api {
     }
 
     // INFO: Search filtering is handled in frontend.
+    /**
+     * Get customfield available options
+     *
+     * @param array $data Search data
+     * @return array
+     */
     public static function get_customfield_available_options(array $data): array {
         global $DB;
-        $customfield_fieldids = self::get_customfield_fields();
+        $customfieldfieldids = self::get_customfield_fields();
 
         [$searchdata, $customfields, $categories, $tags] = self::remap_searchdata($data);
 
-        if (!in_array($searchdata['current_customfield'], $customfield_fieldids)) {
+        if (!in_array($searchdata['current_customfield'], $customfieldfieldids)) {
             return [];
         }
 
-        $course_contextids = self::get_filtered_courseids($customfields, $categories, $tags, $searchdata['searchterm'], 'customfield', $searchdata['current_customfield'], 0, 0, true, $searchdata['progress']);
+        $coursecontextids = self::get_filtered_courseids(
+            $customfields,
+            $categories,
+            $tags,
+            $searchdata['searchterm'],
+            'customfield',
+            $searchdata['current_customfield'],
+            0,
+            0,
+            true,
+            $searchdata['progress']
+        );
 
-        if (!sizeof($course_contextids)) {
+        if (!count($coursecontextids)) {
             return [];
         }
 
-        [$insql, $inparams] = $DB->get_in_or_equal($course_contextids, SQL_PARAMS_NAMED);
+        [$insql, $inparams] = $DB->get_in_or_equal($coursecontextids, SQL_PARAMS_NAMED);
         $inparams['fieldid'] = $searchdata['current_customfield'];
-        // $customfield_data_ids = $DB->get_records_select('customfield_data', "contextid $insql AND fieldid = ?", $inparams, 'id');
+        // Customfield_data_ids = $DB->get_records_select('customfield_data', "contextid $insql AND fieldid = ?".
         $select = "contextid $insql AND fieldid = :fieldid";
         $distinctablevalue = $DB->sql_compare_text('value');
         $values = $DB->get_records_select_menu('customfield_data', $select, $inparams, '', "DISTINCT $distinctablevalue, $distinctablevalue AS value2");
@@ -885,8 +1114,8 @@ class externallib extends external_api {
             define('BLOCK_MYOVERVIEW_CUSTOMFIELD_EMPTY', -1);
         }
         $values = $field->course_grouping_format_values($values);
-        // $customfieldactive = ($this->grouping === BLOCK_ETCOURSESEARCH_GROUPING_CUSTOMFIELD);
-        // $customfieldactive = ($this->grouping === 'customfield');
+        // Customfieldactive = ($this->grouping === BLOCK_ETCOURSESEARCH_GROUPING_CUSTOMFIELD);
+        // Customfieldactive = ($this->grouping === 'customfield');
         $ret = [];
         foreach ($values as $value => $name) {
             $ret[] = (object)['name' => $name, 'value' => $value];
@@ -901,10 +1130,20 @@ class externallib extends external_api {
         return $ret;
     }
 
+    /**
+     * Get customfield available options parameters
+     *
+     * @return external_function_parameters
+     */
     public static function get_customfield_available_options_parameters() {
         return self::get_available_parameters();
     }
 
+    /**
+     * Get customfield available options returns
+     *
+     * @return external_multiple_structure
+     */
     public static function get_customfield_available_options_returns() {
         return new external_multiple_structure(
             new external_single_structure(
@@ -917,6 +1156,12 @@ class externallib extends external_api {
         );
     }
 
+    /**
+     * Get multiselect customfields
+     *
+     * @param int|false $excludeid Exclude ID
+     * @return array
+     */
     public static function get_multiselect_customfields(int | false $excludeid = false) {
         global $DB;
         $fieldids = [];
@@ -930,6 +1175,13 @@ class externallib extends external_api {
     }
 
     // Oops, forgot, this isn't JS.
+    /**
+     * Array find helper function
+     *
+     * @param array $array Array to search
+     * @param callable $callback Callback function
+     * @return mixed
+     */
     public static function array_find(array $array, callable $callback) {
         foreach ($array as $key => $value) {
             if ($callback($value)) {
@@ -939,6 +1191,13 @@ class externallib extends external_api {
         return false;
     }
 
+    /**
+     * Filter and convert multiselect customfields
+     *
+     * @param array $customfields Custom fields array
+     * @param int|bool $excludeid Exclude ID
+     * @return array
+     */
     public static function filterconvert_multiselect_customfields(array $customfields, int | bool $excludeid): array {
         global $DB;
         if ($excludeid && $DB->record_exists('customfield_field', ['id' => $excludeid, 'type' => 'multiselect'])) {
@@ -956,7 +1215,7 @@ class externallib extends external_api {
             $idx = self::array_find($customfields, function ($item) use ($fid) {
                 return $item['fieldid'] === $fid;
             });
-            if ($idx === false || !sizeof($customfields[$idx]['fieldvalues'])) {
+            if ($idx === false || !count($customfields[$idx]['fieldvalues'])) {
                 continue;
             }
 
@@ -975,7 +1234,7 @@ class externallib extends external_api {
                 ";
             $fieldvalues = [];
             foreach ($DB->get_records_sql($sql, $params) as $r) {
-                if (sizeof(array_intersect(explode(',', $r->value), $f['fieldvalues']))) {
+                if (count(array_intersect(explode(',', $r->value), $f['fieldvalues']))) {
                     $fieldvalues[] = $r->value;
                 }
             }
@@ -985,10 +1244,20 @@ class externallib extends external_api {
     }
 
 
+    /**
+     * Get customfield value options parameters
+     *
+     * @return external_function_parameters
+     */
     public static function get_customfield_value_options_parameters() {
         return self::get_available_parameters();
     }
 
+    /**
+     * Get customfield value options returns
+     *
+     * @return external_function_parameters
+     */
     public static function get_customfield_value_options_returns() {
         return self::get_available_parameters();
     }
