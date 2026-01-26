@@ -18,7 +18,7 @@
  * Privacy Subsystem implementation for block_eledia_telc_coursesearch.
  *
  * @package    block_eledia_telc_coursesearch
- * @copyright  2018 Zig Tan <zig@moodle.com>
+ * @copyright  2024 Immanuel Pasanec <info@eledia.de>, eLeDia GmbH (made possible by TU Ilmenau)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,7 +33,7 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Privacy Subsystem for block_eledia_telc_coursesearch.
  *
- * @copyright  2018 Zig Tan <zig@moodle.com>
+ * @copyright  2024 Immanuel Pasanec <info@eledia.de>, eLeDia GmbH (made possible by TU Ilmenau)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements \core_privacy\local\metadata\provider, user_preference_provider {

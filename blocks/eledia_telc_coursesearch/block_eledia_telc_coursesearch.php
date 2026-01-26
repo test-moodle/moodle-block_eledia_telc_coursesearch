@@ -15,20 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Contains the class for the My overview block.
+ * Contains the class for the eledia_telc_coursesearch block.
  *
  * @package    block_eledia_telc_coursesearch
- * @copyright  Mark Nelson <markn@moodle.com>
+ * @copyright  2024 Immanuel Pasanec <info@eledia.de>, eLeDia GmbH (made possible by TU Ilmenau)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * My overview block class.
+ * TELC course search block class.
  *
  * @package    block_eledia_telc_coursesearch
- * @copyright  Mark Nelson <markn@moodle.com>
+ * @copyright  2024 Immanuel Pasanec <info@eledia.de>, eLeDia GmbH (made possible by TU Ilmenau)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class block_eledia_telc_coursesearch extends block_base {

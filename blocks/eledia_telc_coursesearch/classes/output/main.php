@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Class containing data for my overview block.
+ * Class containing data for eledia_telc_coursesearch block.
  *
  * @package    block_eledia_telc_coursesearch
- * @copyright  2017 Ryan Wyllie <ryan@moodle.com>
+ * @copyright  2024 Immanuel Pasanec <info@eledia.de>, eLeDia GmbH (made possible by TU Ilmenau)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_eledia_telc_coursesearch\output;
@@ -36,9 +36,9 @@ require_once($CFG->dirroot . '/blocks/eledia_telc_coursesearch/lib.php');
 require_once($CFG->dirroot . '/course/renderer.php');
 
 /**
- * Class containing data for my overview block.
+ * Class containing data for eledia_telc_coursesearch block.
  *
- * @copyright  2018 Bas Brands <bas@moodle.com>
+ * @copyright  2024 Immanuel Pasanec <info@eledia.de>, eLeDia GmbH (made possible by TU Ilmenau)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class main implements renderable, templatable {

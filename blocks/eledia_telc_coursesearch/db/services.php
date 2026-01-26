@@ -18,7 +18,7 @@
  * External functions and service declarations for eledia_telc_coursesearch block
  *
  * @package    block_eledia_telc_coursesearch
- * @copyright  2024
+ * @copyright  2024 Immanuel Pasanec <info@eledia.de>, eLeDia GmbH (made possible by TU Ilmenau)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

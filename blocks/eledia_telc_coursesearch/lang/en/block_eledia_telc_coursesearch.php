@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Lang strings for the My overview block.
+ * Lang strings for the eledia_telc_coursesearch block.
  *
  * @package    block_eledia_telc_coursesearch
- * @copyright  Mark Nelson <markn@moodle.com>
+ * @copyright  2024 Immanuel Pasanec <info@eledia.de>, eLeDia GmbH (made possible by TU Ilmenau)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -115,3 +115,4 @@ $string['selectedoption_top'] = 'Below alway visible search field section';
 $string['selectedoption_bottom'] = 'Below expandable search field section';
 $string['selected_options_position'] = 'Selected options items position';
 $string['selected_options_position_description'] = 'The position of the selected options item tiles section.';
+$string['setting_locked_obsolete'] = 'This setting is obsolete but required by the code and cannot be changed.';

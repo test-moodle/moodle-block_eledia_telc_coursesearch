@@ -18,7 +18,7 @@
  * External library class for eledia_telc_coursesearch block
  *
  * @package    block_eledia_telc_coursesearch
- * @copyright  2024
+ * @copyright  2024 Immanuel Pasanec <info@eledia.de>, eLeDia GmbH (made possible by TU Ilmenau)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -44,7 +44,7 @@ require_once($CFG->dirroot . '/course/renderer.php');
  * External library class
  *
  * @package    block_eledia_telc_coursesearch
- * @copyright  2024
+ * @copyright  2024 Immanuel Pasanec <info@eledia.de>, eLeDia GmbH (made possible by TU Ilmenau)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class externallib extends external_api {
@@ -328,10 +328,6 @@ class externallib extends external_api {
                 $searchcriteria,
                 $options
             );
-
-            // echo( ">>>>>>>>>>>>>>>>>>>>>>>" . $searchcriteria );
-            // echo( ">>>>>>>>>>>>>>>>>>>>>>>" . $options);
-            // die();
         } else {
             $courses = course_get_enrolled_courses_for_logged_in_user(
                 0,
@@ -543,7 +539,6 @@ class externallib extends external_api {
     // INFO: Customfield queries are separate from course search. Two DB queries are required to populate a field through search.
     // NOTE: Oops. Theoretically. Due to time constraints for development it is four.
     // INFO: There is no need to send data about which fields are selected because it can be managed stateful by frontend.
-    // TODO: MDL-XXXXX Make dynamic multiple JOIN statements.
 
     /**
      * Get filtered course ids
@@ -583,7 +578,6 @@ class externallib extends external_api {
         $allparams = [];
         $customfieldid = $excludetype === 'customfield' ? (string) $excludevalue : -1;
         foreach ($customfields as $customfield) {
-            // TODO: MDL-XXXXX The int conversion should be changed to sql parameter.
             if ((int) $customfield['fieldid'] === (int) $customfieldid || !count($customfield['fieldvalues'])) {
                     continue;
             }
@@ -647,7 +641,6 @@ class externallib extends external_api {
 
         // Comparevalue = $DB->sql_compare_text('cd.value');
         $courseids = [];
-        // TODO: MDL-XXXXX Account for child categories. An extra self join query might be required.
         $contextlevel = CONTEXT_COURSE;
         $sql = "
            SELECT DISTINCT $idtype
@@ -840,10 +833,6 @@ class externallib extends external_api {
         return core_course_external::get_categories_returns();
     }
 
-    // TODO: MDL-XXXXX Get sub categories of categories which are transmitted as selected.
-    // This should be an own method to be used in standard search too.
-    // The method should be applied in get_filtered_courseids() additionally to
-    // this method (only if no categories are being searched for dropdown).
     /**
      * Get available categories
      *
@@ -1171,7 +1160,7 @@ class externallib extends external_api {
         $fields = $DB->get_records('customfield_field', ['type' => 'multiselect'], '', 'id');
         foreach ($fields as $cf) {
             if ($cf->id !== $excludeid) {
-                $fieldids[] = $cf->id;
+                $fieldids[] = (int)$cf->id;
             }
         }
         return $fieldids;
