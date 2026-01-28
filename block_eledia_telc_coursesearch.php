@@ -57,7 +57,6 @@ class block_eledia_telc_coursesearch extends block_base {
         } else {
             $view = 'summary';
         }
-        // View = get_user_preferences('block_eledia_telc_coursesearch_user_view_preference');
         $paging = get_user_preferences('block_eledia_telc_coursesearch_user_paging_preference');
         $customfieldvalue = get_user_preferences('block_eledia_telc_coursesearch_user_grouping_customfieldvalue_preference');
 

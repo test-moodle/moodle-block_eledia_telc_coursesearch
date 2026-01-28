@@ -22,7 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_eledia_telc_coursesearch\output;
-defined('MOODLE_INTERNAL') || die;
 
 use plugin_renderer_base;
 use renderable;
@@ -53,7 +52,6 @@ class renderer extends plugin_renderer_base {
         $chelper->set_attributes(['class' => 'frontpage-course-list-all']);
         $userscourses = \core_course_category::top()->get_courses($chelper->get_courses_display_options());
 
-        // If (!count(enrol_get_all_users_courses($USER->id, true))) {
         if (!count($userscourses)) {
             return $this->render_from_template(
                 'block_eledia_telc_coursesearch/zero-state',

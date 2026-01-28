@@ -28,8 +28,6 @@ use core_privacy\local\request\user_preference_provider;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\writer;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Privacy Subsystem for block_eledia_telc_coursesearch.
  *
@@ -44,8 +42,14 @@ class provider implements \core_privacy\local\metadata\provider, user_preference
      * @return \core_privacy\local\metadata\collection Return the collection of meta-data.
      */
     public static function get_metadata(collection $collection): collection {
-        $collection->add_user_preference('block_eledia_telc_coursesearch_user_sort_preference', 'privacy:metadata:overviewsortpreference');
-        $collection->add_user_preference('block_eledia_telc_coursesearch_user_view_preference', 'privacy:metadata:overviewviewpreference');
+        $collection->add_user_preference(
+            'block_eledia_telc_coursesearch_user_sort_preference',
+            'privacy:metadata:overviewsortpreference'
+        );
+        $collection->add_user_preference(
+            'block_eledia_telc_coursesearch_user_view_preference',
+            'privacy:metadata:overviewviewpreference'
+        );
         $collection->add_user_preference(
             'block_eledia_telc_coursesearch_user_grouping_preference',
             'privacy:metadata:overviewgroupingpreference'

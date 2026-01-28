@@ -208,13 +208,11 @@ class externallib extends external_api {
             $sort,
             $customfieldname,
             $customfieldvalue,
-            // searchvalue
-            '',
+            '', // Searchvalue.
             $requiredfields
         );
 
         return self::extract_subset_by_strings([ $searchvalue ], $rawcoursedata);
-        // Return $raw_course_data;
     }
 
     /**
@@ -400,14 +398,6 @@ class externallib extends external_api {
             'nextoffset' => $offset + $processedcount,
         ];
         return $result;
-        // return self::extract_subset_by_strings( [ $searchvalue ], $result );
-        // return self::extract_subset_by_strings( [''], $result );
-        /*
-        return [
-            'courses' => $formattedcourses,
-            'nextoffset' => $offset + $processedcount
-        ];
-        */
     }
 
     /**
@@ -455,7 +445,6 @@ class externallib extends external_api {
         WHERE id $insql
         ";
         $courses = $DB->get_records_sql($sql, $inparams);
-        // Return self::get_courses_rendered($courses, $searchdata['offset']);
         return self::get_courses_rendered($courses, 0);
     }
 
@@ -505,7 +494,6 @@ class externallib extends external_api {
                 'selectedCategories' => ['categories', $value['categories']],
                 'selectedCustomfields' => ['customfields', $value['customfields']],
                 'selectedTags' => ['tags', $value['tags']],
-                // 'searchterm' => ['searchterm', $value['searchterm']],
                 'name' => ['searchterm', $value['value']],
                 'categoryName' => ['catsearchterm', $value['value']],
                 'tagsName' => ['tagssearchterm', $value['value']],
@@ -618,28 +606,19 @@ class externallib extends external_api {
             $insqls .= $query;
         }
         $context = \context_system::instance();
-        // \require_capability('moodle/course:view', $context);
 
-        // $insqls[] = $query;
         $chelper = new \coursecat_helper();
-        // $chelper->set_show_courses(self::COURSECAT_SHOW_COURSES_EXPANDED)->
-        // $chelper->set_show_courses(20)->
         $chelper->set_show_courses(\core_course_renderer::COURSECAT_SHOW_COURSES_EXPANDED)
             ->set_courses_display_options([
                 'recursive' => true,
                 'idonly' => true,
-                // 'limit' => $CFG->frontpagecourselimit,
-                // 'viewmoreurl' => new moodle_url('/course/index.php'),
-                // 'viewmoretext' => new lang_string('fulllistofcourses')
             ]);
 
         $chelper->set_attributes(['class' => 'frontpage-course-list-all']);
         $userscourses = core_course_category::top()->get_courses($chelper->get_courses_display_options());
 
         $idtype = $contextids ? 'ctx.id' : 'c.id';
-        // Throw new \Exception($idtype);
 
-        // Comparevalue = $DB->sql_compare_text('cd.value');
         $courseids = [];
         $contextlevel = CONTEXT_COURSE;
         $sql = "
@@ -749,8 +728,9 @@ class externallib extends external_api {
                                 new external_single_structure(
                                     [
                                         'fieldid' => new external_value(PARAM_INT, 'the value to match', VALUE_OPTIONAL),
-                                        // 'fieldvalues' => new external_value(PARAM_TEXT, 'the value to match', VALUE_OPTIONAL),
-                                        'fieldvalues' => new external_multiple_structure(new external_value(PARAM_RAW, 'the value to match', VALUE_OPTIONAL)),
+                                        'fieldvalues' => new external_multiple_structure(
+                                            new external_value(PARAM_RAW, 'the value to match', VALUE_OPTIONAL)
+                                        ),
                                     ],
                                     'custom field objects',
                                     VALUE_OPTIONAL
@@ -878,7 +858,6 @@ class externallib extends external_api {
             return [];
         }
 
-        // Categories = \core_course_external::get_categories(['ids' => $catids, 'limit' => 6]);
         $parameters = [
             [ 'key' => 'ids', 'value' => implode(',', $catids) ],
         ];
@@ -1081,37 +1060,36 @@ class externallib extends external_api {
 
         [$insql, $inparams] = $DB->get_in_or_equal($coursecontextids, SQL_PARAMS_NAMED);
         $inparams['fieldid'] = $searchdata['current_customfield'];
-        // Customfield_data_ids = $DB->get_records_select('customfield_data', "contextid $insql AND fieldid = ?".
         $select = "contextid $insql AND fieldid = :fieldid";
         $distinctablevalue = $DB->sql_compare_text('value');
-        $values = $DB->get_records_select_menu('customfield_data', $select, $inparams, '', "DISTINCT $distinctablevalue, $distinctablevalue AS value2");
+        $values = $DB->get_records_select_menu(
+            'customfield_data',
+            $select,
+            $inparams,
+            '',
+            "DISTINCT $distinctablevalue, $distinctablevalue AS value2"
+        );
         \core_collator::asort($values, \core_collator::SORT_NATURAL);
         $values = array_filter($values);
         if (!$values) {
             return [];
         }
         $field = \core_customfield\field_controller::create($searchdata['current_customfield']);
-        $isvisible = $field->get_configdata_property('visibility') == \core_course\customfield\course_handler::VISIBLETOALL;
-        // Only visible fields to everybody supporting course grouping will be displayed.
-        if ((!$field->supports_course_grouping() || !$isvisible) && !$field = \block_eledia_telc_coursesearch\fieldcontroller_factory::create($field)) {
-            return []; // The field shouldn't have been selectable in the global settings, but just skip it now.
+        $coursehandler = \core_course\customfield\course_handler::VISIBLETOALL;
+        $isvisible = $field->get_configdata_property('visibility') == $coursehandler;
+        if (
+            (!$field->supports_course_grouping() || !$isvisible) &&
+            !$field = \block_eledia_telc_coursesearch\fieldcontroller_factory::create($field)
+        ) {
+            return [];
         }
         if (!defined('BLOCK_MYOVERVIEW_CUSTOMFIELD_EMPTY')) {
             define('BLOCK_MYOVERVIEW_CUSTOMFIELD_EMPTY', -1);
         }
         $values = $field->course_grouping_format_values($values);
-        // Customfieldactive = ($this->grouping === BLOCK_ETCOURSESEARCH_GROUPING_CUSTOMFIELD);
-        // Customfieldactive = ($this->grouping === 'customfield');
         $ret = [];
         foreach ($values as $value => $name) {
             $ret[] = (object)['name' => $name, 'value' => $value];
-            /*
-            $ret[] = (object)[
-                'name' => $name,
-                'value' => $value,
-                'active' => ($customfieldactive && ($this->customfieldvalue == $value)),
-            ];
-            */
         }
         return $ret;
     }

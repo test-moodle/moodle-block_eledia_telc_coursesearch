@@ -489,7 +489,6 @@ class main implements renderable, templatable {
         $optionsposition = get_config('block_eledia_telc_coursesearch', 'options_position');
 
         $defaultvariables = [
-            // 'totalcoursecount' => count(enrol_get_all_users_courses($USER->id, true)),
             'totalcoursecount' => count($userscourses),
             'nocoursesimg' => $nocoursesurl,
             'newcourseurl' => $newcourseurl,

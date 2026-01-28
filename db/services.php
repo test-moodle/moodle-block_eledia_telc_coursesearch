@@ -68,13 +68,5 @@ $functions = [
         'description' => 'Return category details',
         'type' => 'read',
         'ajax' => true,
-        // An optional list of services where the function will be included.
-        /*'services' => [*/
-        /*    // A standard Moodle install includes one default service:*/
-        /*    // - MOODLE_OFFICIAL_MOBILE_SERVICE.*/
-        /*    // Specifying this service means that your function will be available for*/
-        /*    // use in the Moodle Mobile App.*/
-        /*    MOODLE_OFFICIAL_MOBILE_SERVICE,*/
-        /*]*/
     ],
 ];
