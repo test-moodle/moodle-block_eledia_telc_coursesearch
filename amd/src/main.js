@@ -16,7 +16,7 @@
 /**
  * Javascript to initialise the eledia_telc_coursesearch block.
  *
- * @package block_eledia_telc_coursesearch
+ * @package
  * @copyright 2025 eLeDia GmbH
  * @author Immanuel Pasanec <support@eledia.de>
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
